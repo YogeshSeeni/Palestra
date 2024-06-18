@@ -1,6 +1,8 @@
 import 'package:Palestra/components/my_button.dart';
 import 'package:Palestra/components/my_textfield.dart';
 import 'package:Palestra/components/square_tile.dart';
+import 'package:Palestra/helper/helper_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -23,16 +25,33 @@ class _RegisterPageState extends State<RegisterPage> {
   final confirmController = TextEditingController();
 
   //Register Method
-  void register() {
+  void register() async {
     // show loading circle
-    showDialog(context: context, builder: (context) => const Center(child: CircularProgressIndicator()));
+    showDialog(
+        context: context,
+        builder: (context) => const Center(child: CircularProgressIndicator()));
 
-    //passwords match
+    // check if passwords don't match
     if (passwordController.text != confirmController.text) {
+      // Remove Loading Circle
       Navigator.pop(context);
-    }
 
-    //create user
+      // Display error message
+      displayMessage("Passwords Don't Match!!", context);
+    } else {
+      //create user
+      try {
+        UserCredential? userCredential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+                email: emailController.text, password: passwordController.text);
+
+        Navigator.pop(context);
+      } on FirebaseAuthException catch (e) {
+        Navigator.pop(context);
+
+        displayMessage(e.code, context);
+      }
+    }
   }
 
   @override
@@ -46,47 +65,41 @@ class _RegisterPageState extends State<RegisterPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 25),
-          
+
                 // logo
-                Image.asset(
-                  'lib/images/logo.png',
-                  height: 150
-                ),
-          
+                Image.asset('lib/images/logo.png', height: 150),
+
                 const SizedBox(height: 10),
-          
+
                 // Email text field
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   child: MyTextField(
-                    controller: emailController,
-                    hintText: 'Email',
-                    obscureText: false
-                  ),
+                      controller: emailController,
+                      hintText: 'Email',
+                      obscureText: false),
                 ),
-          
+
                 const SizedBox(height: 10),
 
                 // Username text field
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   child: MyTextField(
-                    controller: usernameController,
-                    hintText: 'Username',
-                    obscureText: false
-                  ),
+                      controller: usernameController,
+                      hintText: 'Username',
+                      obscureText: false),
                 ),
-          
+
                 const SizedBox(height: 10),
-          
+
                 // Password text field
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   child: MyTextField(
-                    controller: passwordController,
-                    hintText: 'Password',
-                    obscureText: true
-                  ),
+                      controller: passwordController,
+                      hintText: 'Password',
+                      obscureText: true),
                 ),
 
                 const SizedBox(height: 10),
@@ -95,14 +108,13 @@ class _RegisterPageState extends State<RegisterPage> {
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   child: MyTextField(
-                    controller: confirmController,
-                    hintText: 'Confirm Password',
-                    obscureText: true
-                  ),
+                      controller: confirmController,
+                      hintText: 'Confirm Password',
+                      obscureText: true),
                 ),
-                
+
                 const SizedBox(height: 25),
-          
+
                 // Register button
                 MyButton(
                   buttonText: "Register",
@@ -122,14 +134,11 @@ class _RegisterPageState extends State<RegisterPage> {
                           color: Colors.grey[400],
                         ),
                       ),
-
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 10.0),
                         child: Text('Or continue with',
-                        style: TextStyle(color: Colors.grey[700])
-                        ),
+                            style: TextStyle(color: Colors.grey[700])),
                       ),
-
                       Expanded(
                         child: Divider(
                           thickness: 0.5,
@@ -137,10 +146,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                       )
                     ],
-
-                    ),
+                  ),
                 ),
-          
+
                 const SizedBox(height: 25),
 
                 // Google + apple sign in button
@@ -149,7 +157,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   children: [
                     // google button
                     SquareTile(imagePath: 'lib/images/google.png'),
-                    
+
                     SizedBox(width: 10),
 
                     // apple buttom
@@ -163,21 +171,21 @@ class _RegisterPageState extends State<RegisterPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Already have an account?',
-                    style: TextStyle(color: Colors.grey[700]),
+                    Text(
+                      'Already have an account?',
+                      style: TextStyle(color: Colors.grey[700]),
                     ),
                     const SizedBox(width: 4),
                     GestureDetector(
                       onTap: widget.onTap,
-                      child: const Text(
-                        'Login Here',
-                        style: TextStyle(
-                          color: Colors.blue, fontWeight: FontWeight.bold,
-                        )
-                      ),
+                      child: const Text('Login Here',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                          )),
                     ),
                   ],
-                  )
+                )
               ],
             ),
           ),
