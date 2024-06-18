@@ -1,20 +1,43 @@
 import 'package:Palestra/components/my_button.dart';
 import 'package:Palestra/components/my_textfield.dart';
 import 'package:Palestra/components/square_tile.dart';
+import 'package:Palestra/helper/helper_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   final void Function()? onTap;
 
   LoginPage({super.key, required this.onTap});
 
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
   // text editing controllers
-  final usernameController = TextEditingController();
+  final emailController = TextEditingController();
+
   final passwordController = TextEditingController();
 
   //Login Method
-  void login() {
+  void login() async {
+    // Create Loading Circle
+    showDialog(
+        context: context,
+        builder: (context) => const Center(child: CircularProgressIndicator()));
 
+    //Sign User In
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailController.text, password: passwordController.text);
+
+      // Pop Loading Circle
+      if (context.mounted) Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      Navigator.pop(context);
+      
+      displayMessage(e.code, context);
+    }
   }
 
   @override
@@ -28,13 +51,10 @@ class LoginPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 25),
-          
+
                 // logo
-                Image.asset(
-                  'lib/images/logo.png',
-                  height: 150
-                ),
-          
+                Image.asset('lib/images/logo.png', height: 150),
+
                 const SizedBox(height: 10),
 
                 // "Welcome to the future of fitness."
@@ -43,43 +63,39 @@ class LoginPage extends StatelessWidget {
                       color: Colors.grey[700],
                       fontSize: 16,
                     )),
-          
+
                 const SizedBox(height: 25),
-          
+
                 // Username text field
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   child: MyTextField(
-                    controller: usernameController,
-                    hintText: 'Username',
-                    obscureText: false
-                  ),
+                      controller: emailController,
+                      hintText: 'Email',
+                      obscureText: false),
                 ),
-          
+
                 const SizedBox(height: 10),
-          
+
                 // Password text field
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   child: MyTextField(
-                    controller: passwordController,
-                    hintText: 'Password',
-                    obscureText: true
-                  ),
+                      controller: passwordController,
+                      hintText: 'Password',
+                      obscureText: true),
                 ),
-          
+
                 // Forgot password?
-                Text(
-                  'Forgot Password?',
-                  style: TextStyle(color: Colors.grey[600])
-                ),
-                
+                Text('Forgot Password?',
+                    style: TextStyle(color: Colors.grey[600])),
+
                 const SizedBox(height: 25),
-          
+
                 // Sign in button
                 MyButton(
                   buttonText: "Sign In",
-                  onTap: onTap,
+                  onTap: login,
                 ),
 
                 const SizedBox(height: 50),
@@ -95,14 +111,11 @@ class LoginPage extends StatelessWidget {
                           color: Colors.grey[400],
                         ),
                       ),
-
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 10.0),
                         child: Text('Or continue with',
-                        style: TextStyle(color: Colors.grey[700])
-                        ),
+                            style: TextStyle(color: Colors.grey[700])),
                       ),
-
                       Expanded(
                         child: Divider(
                           thickness: 0.5,
@@ -110,10 +123,9 @@ class LoginPage extends StatelessWidget {
                         ),
                       )
                     ],
-
-                    ),
+                  ),
                 ),
-          
+
                 const SizedBox(height: 25),
 
                 // Google + apple sign in button
@@ -122,7 +134,7 @@ class LoginPage extends StatelessWidget {
                   children: [
                     // google button
                     SquareTile(imagePath: 'lib/images/google.png'),
-                    
+
                     SizedBox(width: 10),
 
                     // apple buttom
@@ -136,21 +148,21 @@ class LoginPage extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Not a member?',
-                    style: TextStyle(color: Colors.grey[700]),
+                    Text(
+                      'Not a member?',
+                      style: TextStyle(color: Colors.grey[700]),
                     ),
                     const SizedBox(width: 4),
                     GestureDetector(
-                      onTap: onTap,
-                      child: const Text(
-                        'Register now',
-                        style: TextStyle(
-                          color: Colors.blue, fontWeight: FontWeight.bold,
-                        )
-                      ),
+                      onTap: widget.onTap,
+                      child: const Text('Register now',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                          )),
                     ),
                   ],
-                  )
+                )
               ],
             ),
           ),

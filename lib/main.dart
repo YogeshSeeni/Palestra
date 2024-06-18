@@ -1,4 +1,4 @@
-import 'package:Palestra/auth/login_or_register.dart';
+import 'package:Palestra/auth/auth.dart';
 import 'package:Palestra/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: LoginOrRegister(),
+      home: AuthPage(),
     );
   }
 }
