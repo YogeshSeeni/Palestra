@@ -3,16 +3,16 @@ import 'package:Palestra/components/my_textfield.dart';
 import 'package:Palestra/components/square_tile.dart';
 import 'package:flutter/material.dart';
 
-class LoginPage extends StatelessWidget {
+class RegisterPage extends StatelessWidget {
   final void Function()? onTap;
 
-  LoginPage({super.key, required this.onTap});
+  RegisterPage({super.key, required this.onTap});
 
   // text editing controllers
+  final emailController = TextEditingController();
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
-
-  
+  final confirmController = TextEditingController();
 
 
   @override
@@ -34,16 +34,19 @@ class LoginPage extends StatelessWidget {
                 ),
           
                 const SizedBox(height: 10),
+          
+                // Email text field
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  child: MyTextField(
+                    controller: emailController,
+                    hintText: 'Email',
+                    obscureText: false
+                  ),
+                ),
+          
+                const SizedBox(height: 10),
 
-                // "Welcome to the future of fitness."
-                Text('Welcome to the future of fitness.',
-                    style: TextStyle(
-                      color: Colors.grey[700],
-                      fontSize: 16,
-                    )),
-          
-                const SizedBox(height: 25),
-          
                 // Username text field
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -65,22 +68,28 @@ class LoginPage extends StatelessWidget {
                     obscureText: true
                   ),
                 ),
-          
-                // Forgot password?
-                Text(
-                  'Forgot Password?',
-                  style: TextStyle(color: Colors.grey[600])
+
+                const SizedBox(height: 10),
+
+                // Confirm password text field
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  child: MyTextField(
+                    controller: confirmController,
+                    hintText: 'Confirm Password',
+                    obscureText: true
+                  ),
                 ),
                 
                 const SizedBox(height: 25),
           
-                // Sign in button
+                // Register button
                 MyButton(
-                  buttonText: "Sign In",
+                  buttonText: "Register",
                   onTap: onTap,
                 ),
 
-                const SizedBox(height: 50),
+                const SizedBox(height: 25),
 
                 // Or continue with
                 Padding(
@@ -134,12 +143,12 @@ class LoginPage extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Not a member?',
+                    Text('Already have an account?',
                     style: TextStyle(color: Colors.grey[700]),
                     ),
                     const SizedBox(width: 4),
                     const Text(
-                      'Register now',
+                      'Login Here',
                       style: TextStyle(
                         color: Colors.blue, fontWeight: FontWeight.bold,
                       )
