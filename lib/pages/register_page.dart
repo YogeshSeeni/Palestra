@@ -3,17 +3,37 @@ import 'package:Palestra/components/my_textfield.dart';
 import 'package:Palestra/components/square_tile.dart';
 import 'package:flutter/material.dart';
 
-class RegisterPage extends StatelessWidget {
+class RegisterPage extends StatefulWidget {
   final void Function()? onTap;
 
   RegisterPage({super.key, required this.onTap});
 
+  @override
+  State<RegisterPage> createState() => _RegisterPageState();
+}
+
+class _RegisterPageState extends State<RegisterPage> {
   // text editing controllers
   final emailController = TextEditingController();
+
   final usernameController = TextEditingController();
+
   final passwordController = TextEditingController();
+
   final confirmController = TextEditingController();
 
+  //Register Method
+  void register() {
+    // show loading circle
+    showDialog(context: context, builder: (context) => const Center(child: CircularProgressIndicator()));
+
+    //passwords match
+    if (passwordController.text != confirmController.text) {
+      Navigator.pop(context);
+    }
+
+    //create user
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +106,7 @@ class RegisterPage extends StatelessWidget {
                 // Register button
                 MyButton(
                   buttonText: "Register",
-                  onTap: onTap,
+                  onTap: register,
                 ),
 
                 const SizedBox(height: 25),
@@ -147,11 +167,14 @@ class RegisterPage extends StatelessWidget {
                     style: TextStyle(color: Colors.grey[700]),
                     ),
                     const SizedBox(width: 4),
-                    const Text(
-                      'Login Here',
-                      style: TextStyle(
-                        color: Colors.blue, fontWeight: FontWeight.bold,
-                      )
+                    GestureDetector(
+                      onTap: widget.onTap,
+                      child: const Text(
+                        'Login Here',
+                        style: TextStyle(
+                          color: Colors.blue, fontWeight: FontWeight.bold,
+                        )
+                      ),
                     ),
                   ],
                   )

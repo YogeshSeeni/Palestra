@@ -12,8 +12,10 @@ class LoginPage extends StatelessWidget {
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
 
-  
+  //Login Method
+  void login() {
 
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -138,11 +140,14 @@ class LoginPage extends StatelessWidget {
                     style: TextStyle(color: Colors.grey[700]),
                     ),
                     const SizedBox(width: 4),
-                    const Text(
-                      'Register now',
-                      style: TextStyle(
-                        color: Colors.blue, fontWeight: FontWeight.bold,
-                      )
+                    GestureDetector(
+                      onTap: onTap,
+                      child: const Text(
+                        'Register now',
+                        style: TextStyle(
+                          color: Colors.blue, fontWeight: FontWeight.bold,
+                        )
+                      ),
                     ),
                   ],
                   )
