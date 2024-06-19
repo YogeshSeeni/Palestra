@@ -1,7 +1,9 @@
 import 'package:Palestra/auth/auth.dart';
+import 'package:Palestra/data/workout_data.dart';
 import 'package:Palestra/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,9 +16,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: AuthPage(),
+    return ChangeNotifierProvider(create: (context) => WorkoutData(),
+    child: 
+      const MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: AuthPage(),
+      )
     );
   }
 }
