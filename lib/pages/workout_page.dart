@@ -28,19 +28,20 @@ class _WorkoutPageState extends State<WorkoutPage> {
           children: [
             TextField(
               controller: exerciseNameController,
-              decoration: InputDecoration(hintText: 'Exercise Name'),
+              decoration: InputDecoration(hintText: 'Exercise Name', focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black),), enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black),),),
+              
             ),
             TextField(
               controller: weightController,
-              decoration: InputDecoration(hintText: 'Weight'),
+              decoration: InputDecoration(hintText: 'Weight', focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black),), enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black),),),
             ),
             TextField(
               controller: setsController,
-              decoration: InputDecoration(hintText: 'Sets'),
+              decoration: InputDecoration(hintText: 'Sets', focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black),), enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black),),),
             ),
             TextField(
               controller: repsController,
-              decoration: InputDecoration(hintText: 'Reps'),
+              decoration: InputDecoration(hintText: 'Reps', focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black),), enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.black),),),
             ),
           ],
         ),

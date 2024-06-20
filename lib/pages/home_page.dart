@@ -28,6 +28,12 @@ class _HomePageState extends State<HomePage> {
                   controller: newWorkoutNameController,
                   decoration: InputDecoration(
                     hintText: 'Workout Name',
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black),
+                    ),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black),
+                    ),
                   ),
                 ),
                 actions: [
@@ -107,18 +113,6 @@ class _HomePageState extends State<HomePage> {
             ],
             backgroundColor: Colors.grey[200],
           ),
-          floatingActionButton: Obx(() {
-            // Only show the floating action button on the "Workout" tab
-            if (controller.index.value == 1) {
-              return FloatingActionButton(
-                onPressed: createNewWorkout,
-                child: Icon(Icons.add, color: Colors.white),
-                backgroundColor: Colors.black,
-              );
-            } else {
-              return Container(); // Return an empty container when the FAB is not needed
-            }
-          }),
           backgroundColor:
               Colors.grey[200], // Set the background color of the app to grey
           body: Obx(() {
@@ -129,21 +123,47 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   if (currentUser?.displayName != null)
                     Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        "Welcome, ${currentUser?.displayName}",
-                        style: const TextStyle(
-                          fontSize: 18,
+                      padding: const EdgeInsets.all(16.0),
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Let's work, ${currentUser?.displayName}.",
+                          style: const TextStyle(
+                              fontSize: 42, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ElevatedButton(
+                      onPressed: createNewWorkout,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black, // Background color
+                        foregroundColor: Colors.white, // Text color
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                        textStyle: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.add, color: Colors.white),
+                          Text('Add New Workout'),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16),
                   Expanded(
                     child: workoutList.isNotEmpty
                         ? ListView.builder(
                             itemCount: workoutList.length,
                             itemBuilder: (context, index) {
                               return ListTile(
-                                title: Text(workoutList[index].name),
+                                title: Text(workoutList[index].name,
+                                    style: const TextStyle(fontSize: 18)),
                                 trailing: IconButton(
                                   icon: Icon(Icons.arrow_forward_ios),
                                   onPressed: () =>
