@@ -49,7 +49,11 @@ class WorkoutData extends ChangeNotifier {
     return relevantWorkout.exercises.length;
   }
 
-  // add a workout
+  void addSession(String name) {
+    // add a new session with a blank list of exercises
+  }
+
+  // add a workout template
   void addWorkout(String name) {
     // add a new workout with a blank list of exercises
     workoutList.add(Workout(name: name, exercises: []));

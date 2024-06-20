@@ -1,6 +1,7 @@
 import 'package:Palestra/controller/bottom_nav_bar_controller.dart';
 import 'package:Palestra/data/workout_data.dart';
 import 'package:Palestra/pages/workout_page.dart';
+import 'package:Palestra/pages/session_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
@@ -17,16 +18,61 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   // text controller
   final newWorkoutNameController = TextEditingController();
+  final newSessionNameController = TextEditingController();
+
+  void createNewSession() {
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+                title: const Text("Start workout session"),
+                content: TextField(
+                  controller: newSessionNameController,
+                  decoration: InputDecoration(
+                    hintText: 'Session Name',
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black),
+                    ),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black),
+                    ),
+                  ),
+                ),
+                actions: [
+                  MaterialButton(
+                      onPressed: saveSession,
+                      child: const Text("save",
+                          style: TextStyle(color: Colors.black))),
+                  MaterialButton(
+                      onPressed: cancel,
+                      child: const Text("cancel",
+                          style: TextStyle(color: Colors.black)))
+                ]));
+  }
+
+  void saveSession() {
+    String newSessionName = newSessionNameController.text;
+    Provider.of<WorkoutData>(context, listen: false).addSession(newSessionName);
+    Navigator.pop(context);
+    clear();
+    goToSessionPage(newSessionName);
+  }
+
+  void goToSessionPage(String sessionName) {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => SessionPage(sessionName: sessionName)));
+  }
 
   // create a new workout
   void createNewWorkout() {
     showDialog(
         context: context,
         builder: (context) => AlertDialog(
-                title: const Text("Create new workout"),
+                title: const Text("Create new template"),
                 content: TextField(
                   controller: newWorkoutNameController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Workout Name',
                     focusedBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: Colors.black),
@@ -38,7 +84,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 actions: [
                   MaterialButton(
-                      onPressed: save,
+                      onPressed: saveWorkout,
                       child: const Text("save",
                           style: TextStyle(color: Colors.black))),
                   MaterialButton(
@@ -55,7 +101,7 @@ class _HomePageState extends State<HomePage> {
             builder: (context) => WorkoutPage(workoutName: workoutName)));
   }
 
-  void save() {
+  void saveWorkout() {
     String newWorkoutName = newWorkoutNameController.text;
     Provider.of<WorkoutData>(context, listen: false).addWorkout(newWorkoutName);
 
@@ -129,18 +175,19 @@ class _HomePageState extends State<HomePage> {
                         child: Text(
                           "Let's work, ${currentUser?.displayName}.",
                           style: const TextStyle(
-                              fontSize: 42, fontWeight: FontWeight.bold),
+                              fontSize: 35, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: ElevatedButton(
-                      onPressed: createNewWorkout,
+                      onPressed: createNewSession,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black, // Background color
                         foregroundColor: Colors.white, // Text color
-                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                         textStyle: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -149,13 +196,45 @@ class _HomePageState extends State<HomePage> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.add, color: Colors.white),
-                          Text('Add New Workout'),
+                          Icon(Icons.start, color: Colors.white),
+                          Text(' Start Workout Session'),
                         ],
                       ),
                     ),
                   ),
                   SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Templates",
+                            style: const TextStyle(
+                                fontSize: 21, fontWeight: FontWeight.bold),
+                          ),
+                          ElevatedButton(
+                            onPressed: createNewWorkout,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black, // Background color
+                              foregroundColor: Colors.white, // Text color
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 20),
+                              textStyle: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.add, color: Colors.white),
+                                Text('Template'),
+                              ],
+                            ),
+                          ),
+                        ]),
+                  ),
                   Expanded(
                     child: workoutList.isNotEmpty
                         ? ListView.builder(

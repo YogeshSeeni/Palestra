@@ -84,38 +84,85 @@ class _WorkoutPageState extends State<WorkoutPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer<WorkoutData>(
-      builder: (context, value, child) {
-        final workout = value.getRelevantWorkout(widget.workoutName);
-        return Scaffold(
+Widget build(BuildContext context) {
+  return Consumer<WorkoutData>(
+    builder: (context, value, child) {
+      final workout = value.getRelevantWorkout(widget.workoutName);
+      return Scaffold(
+        backgroundColor: Colors.grey[200],
+        appBar: AppBar(
+          title: Text(
+            widget.workoutName,
+            style: TextStyle(fontSize: 24),
+          ),
           backgroundColor: Colors.grey[200],
-          appBar: AppBar(
-            title: Text(
-              widget.workoutName,
-              style: TextStyle(fontSize: 24),
+        ),
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Container(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Create Template",
+                  style: const TextStyle(
+                      fontSize: 28, fontWeight: FontWeight.bold),
+                ),
+              ),
             ),
-            backgroundColor: Colors.grey[200],
-          ),
-          floatingActionButton: FloatingActionButton(
-            backgroundColor: Colors.black,
-            onPressed: createNewExercise,
-            child: Icon(Icons.add, color: Colors.white),
-          ),
-          body: ListView.builder(
-            itemCount: workout.exercises.length,
-            itemBuilder: (context, index) {
-              final exercise = workout.exercises[index];
-              return ExerciseTile(
-                exerciseName: exercise.name,
-                weight: exercise.weight,
-                reps: exercise.reps,
-                sets: exercise.sets,
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                onPressed: createNewExercise,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black, // Background color
+                  foregroundColor: Colors.white, // Text color
+                  padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                  textStyle: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add, color: Colors.white),
+                    Text('Add New Exercise'),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: workout.exercises.isNotEmpty
+                    ? ListView.builder(
+                        itemCount: workout.exercises.length,
+                        itemBuilder: (context, index) {
+                          final exercise = workout.exercises[index];
+                          return ExerciseTile(
+                            exerciseName: exercise.name,
+                            weight: exercise.weight,
+                            reps: exercise.reps,
+                            sets: exercise.sets,
+                          );
+                        },
+                      )
+                    : Center(
+                        child: Column(
+                          children: [
+                            SizedBox(height: 240),
+                            Text('No exercises added yet.'),
+                          ],
+                        )
+                      ),
+              ),
+            ),  
+          ],
+        ),
+      );
+    },
+  );
+}
+
 }
