@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class Exercise {
   final String name;
-  final String weight;
+  final String weight; 
   final String sets;
   final String reps;
 

@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class ExerciseFirestore {
   final CollectionReference exercises = FirebaseFirestore.instance.collection('exercises');
 
-  Future<void> addExercise(Exercise exercise) {
+  Future<void> addExercise(ExerciseInfo exercise) {
     return exercises.add(exercise.toJson());
   }
 

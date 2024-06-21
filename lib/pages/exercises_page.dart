@@ -28,7 +28,7 @@ class ExercisesPage extends StatelessWidget {
                 String docID = document.id;
 
                 // Get Exercise from Doc
-                Exercise exercise = Exercise.fromJson(document.data() as Map<String, dynamic>);
+                ExerciseInfo exercise = ExerciseInfo.fromJson(document.data() as Map<String, dynamic>);
 
                 return ListTile(
                   title: Text(exercise.title),
@@ -36,7 +36,7 @@ class ExercisesPage extends StatelessWidget {
               },
             );
           } else {
-            return const Text("No NOtes");
+            return const Text("No Notes");
           }
         },
       ),

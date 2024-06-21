@@ -1,5 +1,4 @@
-import 'package:Palestra/models/workout.dart';
-import 'exercise.dart';
+import 'package:Palestra/data/workout_data.dart';
 
 class Session {
   final String name;
