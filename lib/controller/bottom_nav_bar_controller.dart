@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../pages/analyze_page.dart'; // Import the AnalyzePage
 import '../pages/home_page.dart';    // Import the HomePage
@@ -9,10 +8,10 @@ class BottomNavigationBarController extends GetxController {
   RxInt index = 1.obs;
 
   var pages = [
-    AnalyzePage(),
-    HomePage(),
-    ExercisesPage(),
-    AiPage(),
+    const AnalyzePage(),
+    const HomePage(),
+    const ExercisesPage(),
+    const AiPage(),
   ];
 }
 

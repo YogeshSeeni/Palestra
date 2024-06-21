@@ -1,57 +1,94 @@
 import 'package:flutter/material.dart';
 
-class ExerciseTile extends StatelessWidget {
+class ExerciseTile extends StatefulWidget {
   final String exerciseName;
-  final String weight;
-  final String reps;
-  final String sets;
+  final VoidCallback onRemove;
 
   const ExerciseTile({
     super.key,
     required this.exerciseName,
-    required this.weight,
-    required this.reps,
-    required this.sets,
+    required this.onRemove,
+  });
+
+  @override
+  _ExerciseTileState createState() => _ExerciseTileState();
+}
+
+class _ExerciseTileState extends State<ExerciseTile> {
+  List<Widget> sets = [];
+
+  @override
+  void initState() {
+    super.initState();
+    sets.add(createSetRow(1));
+  }
+
+  Widget createSetRow(int setNumber) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          Text(setNumber.toString()),
+          SizedBox(
+            width: 50,
+            child: TextField(
+              decoration: InputDecoration(hintText: 'lbs'),
+              keyboardType: TextInputType.number,
+            ),
+          ),
+          SizedBox(
+            width: 50,
+            child: TextField(
+              decoration: InputDecoration(hintText: 'reps'),
+              keyboardType: TextInputType.number,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void addSet() {
+    setState(() {
+      sets.add(createSetRow(sets.length + 1));
     });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: ListTile(
-          title: Text(
-            exerciseName,
-          ),
-          subtitle: Row(
-            children: [
-              // weight
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Chip(
-                  label: Text(
-                      "${weight}lbs"),
+    return Card(
+      margin: EdgeInsets.all(8.0),
+      color: Colors.grey[300],
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  widget.exerciseName,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-              ),
-
-              // sets
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Chip(
-                  label: Text(
-                      "${sets} sets"),
+                IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: widget.onRemove,
                 ),
-              ),
-
-              // reps
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Chip(
-                  label: Text(
-                      "${reps} reps"),
-                ),
-              )
-            ],
-          )
+              ],
+            ),
+            SizedBox(height: 16),
+            Column(children: sets),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: addSet,
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+              child: Text('+ Add Set', style: TextStyle(color: Colors.white)),
+            ),
+          ],
         ),
+      ),
     );
   }
 }

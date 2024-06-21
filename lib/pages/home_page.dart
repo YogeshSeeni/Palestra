@@ -27,14 +27,8 @@ class _HomePageState extends State<HomePage> {
                 title: const Text("Start workout session"),
                 content: TextField(
                   controller: newSessionNameController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Session Name',
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black),
-                    ),
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black),
-                    ),
                   ),
                 ),
                 actions: [
@@ -147,7 +141,7 @@ class _HomePageState extends State<HomePage> {
         Get.put(BottomNavigationBarController());
     return Consumer<WorkoutData>(
       builder: (context, value, child) {
-        var workoutList = value.getWorkoutList();
+        var workoutList = value.workouts;
         return Scaffold(
           appBar: AppBar(
             title: const Text(
@@ -155,7 +149,7 @@ class _HomePageState extends State<HomePage> {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             actions: [
-              IconButton(onPressed: logout, icon: Icon(Icons.logout)),
+              IconButton(onPressed: logout, icon: const Icon(Icons.logout)),
             ],
             backgroundColor: Colors.grey[200],
           ),
@@ -187,13 +181,13 @@ class _HomePageState extends State<HomePage> {
                         backgroundColor: Colors.black, // Background color
                         foregroundColor: Colors.white, // Text color
                         padding:
-                            EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                        textStyle: TextStyle(
+                            const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                        textStyle: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.start, color: Colors.white),
@@ -202,15 +196,15 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
+                          const Text(
                             "Templates",
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 21, fontWeight: FontWeight.bold),
                           ),
                           ElevatedButton(
@@ -218,14 +212,14 @@ class _HomePageState extends State<HomePage> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.black, // Background color
                               foregroundColor: Colors.white, // Text color
-                              padding: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                   horizontal: 20, vertical: 20),
-                              textStyle: TextStyle(
+                              textStyle: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            child: Row(
+                            child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(Icons.add, color: Colors.white),
@@ -244,15 +238,18 @@ class _HomePageState extends State<HomePage> {
                                 title: Text(workoutList[index].name,
                                     style: const TextStyle(fontSize: 18)),
                                 trailing: IconButton(
-                                  icon: Icon(Icons.arrow_forward_ios),
+                                  icon: const Icon(Icons.arrow_forward_ios),
                                   onPressed: () =>
                                       goToWorkoutPage(workoutList[index].name),
                                 ),
                               );
                             },
                           )
-                        : Center(
-                            child: Text("No data available"),
+                        : const Column(
+                            children: [
+                              SizedBox(height: 150),
+                              Center(child: Text("No data available")),
+                            ]
                           ),
                   ),
                 ],
@@ -273,7 +270,7 @@ class _HomePageState extends State<HomePage> {
                 tabBackgroundColor: Colors.grey.shade800,
                 iconSize: 30,
                 gap: 8,
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 tabs: const [
                   GButton(icon: Icons.trending_up, text: "Analyze"),
                   GButton(icon: Icons.add, text: "Workout"),

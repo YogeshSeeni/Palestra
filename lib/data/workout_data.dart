@@ -1,100 +1,73 @@
 import 'package:flutter/material.dart';
 
-import '../models/exercise.dart';
-import '../models/workout.dart';
+class Exercise {
+  final String name;
+  final String weight;
+  final String sets;
+  final String reps;
+
+  Exercise({
+    required this.name,
+    required this.weight,
+    required this.sets,
+    required this.reps,
+  });
+}
+
+class Workout {
+  final String name;
+  List<Exercise> exercises;
+
+  Workout({
+    required this.name,
+    required this.exercises,
+  });
+}
 
 class WorkoutData extends ChangeNotifier {
-  /* 
+  final List<Workout> _workouts = [];
 
-  WORKOUT DATA STRUCTURE
-
-  This overall list contains the different workouts
-  Each workout has a name and list of exercises
-
-  How to incorporate exercise progress? Perhaps exercise data structure?
-
-  */
-
-  List<Workout> workoutList = [
-    // default workout
-    Workout(name: "Upper Body", exercises: [
-      Exercise(
-        name: "Bicep Curls",
-        weight: "10",
-        reps: "10",
-        sets: "3",
-      ),
-    ]),
-
-    Workout(name: "Lower Body", exercises: [
-      Exercise(
-        name: "Bicep Curls",
-        weight: "10",
-        reps: "10",
-        sets: "3",
-      ),
-    ])
-  ];
-
-  // get the list of workouts
-
-  List<Workout> getWorkoutList() {
-    return workoutList;
-  }
-
-  // get length of given workout
-  int numberOfExercisesInWorkout(String workoutName) {
-    Workout relevantWorkout = getRelevantWorkout(workoutName);
-
-    return relevantWorkout.exercises.length;
-  }
+  List<Workout> get workouts => _workouts;
 
   void addSession(String name) {
     // add a new session with a blank list of exercises
   }
 
-  // add a workout template
   void addWorkout(String name) {
-    // add a new workout with a blank list of exercises
-    workoutList.add(Workout(name: name, exercises: []));
-    
+    _workouts.add(Workout(name: name, exercises: []));
     notifyListeners();
   }
 
-  // add an exercise to a workout
-  void addExercise(String workoutName, String exerciseName, String weight,
-      String reps, String sets) {
-    // find the relevant workout
-    Workout relevantWorkout = getRelevantWorkout(workoutName);
-
-    relevantWorkout.exercises.add(Exercise(
-      name: exerciseName,
-      weight: weight,
-      reps: reps,
-      sets: sets,
-    ));
-
+  void addExercise(String workoutName, String name, String weight, String sets, String reps) {
+    final workout = _workouts.firstWhere((workout) => workout.name == workoutName, orElse: () {
+      Workout newWorkout = Workout(name: workoutName, exercises: []);
+      _workouts.add(newWorkout);
+      return newWorkout;
+    });
+    workout.exercises.add(Exercise(name: name, weight: weight, sets: sets, reps: reps));
     notifyListeners();
   }
 
-  // add sessions to an exercise (so as to track progress)
-  // Yogesh Method(String yoMama)
+  void removeExercise(String workoutName, String exerciseName) {
+    try {
+      final workout = _workouts.firstWhere((workout) => workout.name == workoutName);
+      workout.exercises.removeWhere((exercise) => exercise.name == exerciseName);
+      notifyListeners();
+    } catch (e) {
+      // Handle the case where the workout is not found
+      // Optionally, you can print the error or handle it accordingly
+      print('Workout not found: $workoutName');
+    }
+  }
 
-  // find relevant workout
   Workout getRelevantWorkout(String workoutName) {
-    Workout relevantWorkout =
-        workoutList.firstWhere((workout) => workout.name == workoutName);
-
-    return relevantWorkout;
-  }
-
-  // find relevant exercise
-  Exercise getRelevantExercise(String workoutName, String exerciseName) {
-    Workout relevantWorkout = getRelevantWorkout(workoutName);
-
-    Exercise relevantExercise = relevantWorkout.exercises
-        .firstWhere((exercise) => exercise.name == exerciseName);
-
-    return relevantExercise;
+    return _workouts.firstWhere(
+      (workout) => workout.name == workoutName,
+      orElse: () {
+        Workout newWorkout = Workout(name: workoutName, exercises: []);
+        _workouts.add(newWorkout);
+        return newWorkout;
+      },
+    );
   }
 }

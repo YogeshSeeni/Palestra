@@ -18,7 +18,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
         create: (context) => WorkoutData(),
-        child: const MaterialApp(
+        child: MaterialApp(
+          theme: ThemeData(
+            inputDecorationTheme: InputDecorationTheme(
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.black),
+              ),
+            ),
+          ),
           debugShowCheckedModeBanner: false,
           home: AuthPage(),
         ));

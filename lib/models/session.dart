@@ -1,8 +1,9 @@
+import 'package:Palestra/models/workout.dart';
 import 'exercise.dart';
 
-class Workout {
+class Session {
   final String name;
-  final List<Exercise> exercises;
+  final Workout;
 
-  Workout({required this.name, required this.exercises});
+  Session({required this.name, required this.Workout});
 }
