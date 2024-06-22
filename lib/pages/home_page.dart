@@ -1,7 +1,10 @@
 import 'package:Palestra/controller/bottom_nav_bar_controller.dart';
 import 'package:Palestra/data/workout_data.dart';
+import 'package:Palestra/models/session.dart';
 import 'package:Palestra/pages/workout_page.dart';
 import 'package:Palestra/pages/session_page.dart';
+import 'package:Palestra/services/session_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
@@ -16,7 +19,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // text controller
+  User? currentUser;
+  SessionFirestore? sessionFirestore;
+
+  @override
+  void initState() {
+    super.initState();
+    refreshUser();
+  }
+
+// text controller
   final newWorkoutNameController = TextEditingController();
   final newSessionNameController = TextEditingController();
 
@@ -43,8 +55,11 @@ class _HomePageState extends State<HomePage> {
                 ]));
   }
 
-  void saveSession() {
+  void saveSession() async {
     String newSessionName = newSessionNameController.text;
+    Session newSession = Session.withTitle(newSessionName);
+
+    await sessionFirestore?.addSession(newSession);
     Provider.of<WorkoutData>(context, listen: false).addSession(newSessionName);
     Navigator.pop(context);
     clear();
@@ -112,14 +127,6 @@ class _HomePageState extends State<HomePage> {
     newWorkoutNameController.clear();
   }
 
-  User? currentUser;
-
-  @override
-  void initState() {
-    super.initState();
-    refreshUser();
-  }
-
   void refreshUser() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -128,6 +135,9 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         currentUser = FirebaseAuth.instance.currentUser;
       });
+
+      // sessions firestore reference
+      sessionFirestore = SessionFirestore(userID: currentUser!.uid);
     }
   }
 
@@ -230,27 +240,66 @@ class _HomePageState extends State<HomePage> {
                         ]),
                   ),
                   Expanded(
-                    child: workoutList.isNotEmpty
-                        ? ListView.builder(
-                            itemCount: workoutList.length,
+                    child: StreamBuilder<QuerySnapshot>(
+                      stream: sessionFirestore?.getSessionStream(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          List sessionsList = snapshot.data!.docs;
+
+                          return ListView.builder(
+                            itemCount: sessionsList.length,
                             itemBuilder: (context, index) {
+                              //Get Each Individual Session Doc
+                              DocumentSnapshot document = sessionsList[index];
+                              String docID = document.id;
+
+                              //Get Session from Doc
+                              Session session = Session.fromJson(document.data() as Map<String, dynamic>);
+
                               return ListTile(
-                                title: Text(workoutList[index].name,
+                                title: Text(session.title,
                                     style: const TextStyle(fontSize: 18)),
+                                subtitle: Text(session.date.toString()),
                                 trailing: IconButton(
                                   icon: const Icon(Icons.arrow_forward_ios),
                                   onPressed: () =>
-                                      goToWorkoutPage(workoutList[index].name),
+                                      goToWorkoutPage(session.title),
                                 ),
                               );
                             },
-                          )
-                        : const Column(
+                          );
+                        } else {
+                          return const Column(
                             children: [
                               SizedBox(height: 150),
                               Center(child: Text("No data available")),
                             ]
-                          ),
+                          );
+                        }
+                      }
+                    ),
+
+                    // child: workoutList.isNotEmpty
+                    //     ? ListView.builder(
+                    //         itemCount: workoutList.length,
+                    //         itemBuilder: (context, index) {
+                    //           return ListTile(
+                    //             title: Text(workoutList[index].name,
+                    //                 style: const TextStyle(fontSize: 18)),
+                    //             trailing: IconButton(
+                    //               icon: const Icon(Icons.arrow_forward_ios),
+                    //               onPressed: () =>
+                    //                   goToWorkoutPage(workoutList[index].name),
+                    //             ),
+                    //           );
+                    //         },
+                    //       )
+                    //     : const Column(
+                    //         children: [
+                    //           SizedBox(height: 150),
+                    //           Center(child: Text("No data available")),
+                    //         ]
+                    //       ),
                   ),
                 ],
               );

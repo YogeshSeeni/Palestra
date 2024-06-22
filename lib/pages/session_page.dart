@@ -47,6 +47,9 @@ class _SessionPageState extends State<SessionPage> {
           widget.sessionName,
           style: const TextStyle(fontSize: 24),
         ),
+        actions: [
+          IconButton(onPressed: saveSession, icon: Icon(Icons.save))
+        ],
         backgroundColor: Colors.grey[200],
       ),
       body: Consumer<WorkoutData>(
@@ -121,5 +124,8 @@ class _SessionPageState extends State<SessionPage> {
         },
       ),
     );
+  }
+
+  void saveSession() {
   }
 }

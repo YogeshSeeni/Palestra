@@ -2,6 +2,7 @@ import 'package:Palestra/components/my_button.dart';
 import 'package:Palestra/components/my_textfield.dart';
 import 'package:Palestra/components/square_tile.dart';
 import 'package:Palestra/helper/helper_functions.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
