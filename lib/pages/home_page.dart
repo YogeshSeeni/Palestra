@@ -1,7 +1,6 @@
 import 'package:Palestra/controller/bottom_nav_bar_controller.dart';
 import 'package:Palestra/data/workout_data.dart';
 import 'package:Palestra/models/session.dart';
-import 'package:Palestra/pages/workout_page.dart';
 import 'package:Palestra/pages/session_page.dart';
 import 'package:Palestra/services/session_firestore.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -59,18 +58,18 @@ class _HomePageState extends State<HomePage> {
     String newSessionName = newSessionNameController.text;
     Session newSession = Session.withTitle(newSessionName);
 
-    await sessionFirestore?.addSession(newSession);
+    DocumentReference<Object?>? sessionDoc = await sessionFirestore?.addSession(newSession);
     Provider.of<WorkoutData>(context, listen: false).addSession(newSessionName);
     Navigator.pop(context);
     clear();
-    goToSessionPage(newSessionName);
+    goToSessionPage(newSession, sessionDoc!.id);
   }
 
-  void goToSessionPage(String sessionName) {
+  void goToSessionPage(Session session, String sessionID) {
     Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => SessionPage(sessionName: sessionName)));
+            builder: (context) => SessionPage(session: session, sessionID: sessionID, sessionFirestore: sessionFirestore)));
   }
 
   // create a new workout
@@ -103,12 +102,12 @@ class _HomePageState extends State<HomePage> {
                 ]));
   }
 
-  void goToWorkoutPage(String workoutName) {
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => WorkoutPage(workoutName: workoutName)));
-  }
+  // void goToWorkoutPage(String workoutName) {
+  //   Navigator.push(
+  //       context,
+  //       MaterialPageRoute(
+  //           builder: (context) => WorkoutPage(workoutName: workoutName)));
+  // }
 
   void saveWorkout() {
     String newWorkoutName = newWorkoutNameController.text;
@@ -151,7 +150,6 @@ class _HomePageState extends State<HomePage> {
         Get.put(BottomNavigationBarController());
     return Consumer<WorkoutData>(
       builder: (context, value, child) {
-        var workoutList = value.workouts;
         return Scaffold(
           appBar: AppBar(
             title: const Text(
@@ -263,7 +261,7 @@ class _HomePageState extends State<HomePage> {
                                 trailing: IconButton(
                                   icon: const Icon(Icons.arrow_forward_ios),
                                   onPressed: () =>
-                                      goToWorkoutPage(session.title),
+                                      goToSessionPage(session, docID),
                                 ),
                               );
                             },

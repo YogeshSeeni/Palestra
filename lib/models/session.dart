@@ -26,4 +26,44 @@ class Session {
       exercises: []
     );
   }
+
+  void addExercise(String exerciseName) {
+    exercises.add({
+      'title': exerciseName,
+      'reps': [],
+      'weights': []
+    });
+  }
+
+  void addReps(String exerciseName, int reps) {
+    for (var i = 0; i < exercises.length; i++) {
+      if (exercises[i]['title'] == exerciseName) {
+        exercises[i]['reps'].add(reps);
+      }
+    }
+  }
+
+  void addWeight(String exerciseName, int weight) {
+    for (var i = 0; i < exercises.length; i++) {
+      if (exercises[i]['title'] == exerciseName) {
+        exercises[i]['weights'].add(weight);
+      }
+    }
+  }
+
+  void updateWeight(String exerciseName, int weight, int setNumber) {
+    for (var i = 0; i < exercises.length; i++) {
+      if (exercises[i]['title'] == exerciseName) {
+        exercises[i]['weights'][setNumber] = weight;
+      }
+    }
+  }
+
+  void updateReps(String exerciseName, int reps, int setNumber) {
+    for (var i = 0; i < exercises.length; i++) {
+      if (exercises[i]['title'] == exerciseName) {
+        exercises[i]['reps'][setNumber] = reps;
+      }
+    }
+  }
 }

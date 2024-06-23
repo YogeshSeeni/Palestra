@@ -9,7 +9,7 @@ class SessionFirestore {
     sessions = FirebaseFirestore.instance.collection('users/$userID/sessions');
   }
 
-  Future<void> addSession(Session session) {
+  Future<DocumentReference<Object?>> addSession(Session session) {
     return sessions.add(session.toJson());
   }
 
@@ -17,5 +17,9 @@ class SessionFirestore {
     final sessionStream = sessions.orderBy('date', descending: true).snapshots();
 
     return sessionStream;
+  }
+
+  Future<void> updateSession(Session session, String sessionID) {
+    return sessions.doc(sessionID).update(session.toJson());
   }
 }

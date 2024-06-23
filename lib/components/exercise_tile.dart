@@ -1,13 +1,21 @@
+import 'package:Palestra/models/session.dart';
+import 'package:Palestra/services/session_firestore.dart';
 import 'package:flutter/material.dart';
 
 class ExerciseTile extends StatefulWidget {
   final String exerciseName;
   final VoidCallback onRemove;
+  String sessionID;
+  Session session;
+  late SessionFirestore? sessionFirestore;
 
-  const ExerciseTile({
+  ExerciseTile({
     super.key,
     required this.exerciseName,
     required this.onRemove,
+    required this.sessionID,
+    required this.session,
+    required this.sessionFirestore
   });
 
   @override
@@ -20,10 +28,26 @@ class _ExerciseTileState extends State<ExerciseTile> {
   @override
   void initState() {
     super.initState();
+    if (widget.session)
     sets.add(createSetRow(1));
   }
 
+  void updateWeight(int setNumber, int weight) async {
+    widget.session.updateWeight(widget.exerciseName, weight, setNumber - 1);
+    await widget.sessionFirestore?.updateSession(widget.session, widget.sessionID);
+  }
+
+  void updateReps(int setNumber, int reps) async {
+    widget.session.updateReps(widget.exerciseName, reps, setNumber - 1);
+    await widget.sessionFirestore?.updateSession(widget.session, widget.sessionID);
+  }
+
   Widget createSetRow(int setNumber) {
+    //add set to current session
+    widget.session.addReps(widget.exerciseName, 0);
+    widget.session.addWeight(widget.exerciseName, 0);
+    widget.sessionFirestore?.updateSession(widget.session, widget.sessionID);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -35,6 +59,7 @@ class _ExerciseTileState extends State<ExerciseTile> {
             child: TextField(
               decoration: InputDecoration(hintText: 'lbs'),
               keyboardType: TextInputType.number,
+              onChanged: (weight) => {updateWeight(setNumber, int.parse(weight))},
             ),
           ),
           SizedBox(
@@ -42,6 +67,7 @@ class _ExerciseTileState extends State<ExerciseTile> {
             child: TextField(
               decoration: InputDecoration(hintText: 'reps'),
               keyboardType: TextInputType.number,
+              onChanged: (reps) => {updateReps(setNumber, int.parse(reps))},
             ),
           ),
         ],

@@ -1,12 +1,18 @@
 import 'package:Palestra/components/exercise_list_dialog.dart';
 import 'package:Palestra/components/exercise_tile.dart';
 import 'package:Palestra/data/workout_data.dart';
+import 'package:Palestra/models/session.dart';
+import 'package:Palestra/services/session_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class SessionPage extends StatefulWidget {
-  final String sessionName;
-  const SessionPage({super.key, required this.sessionName});
+  Session session;
+  String sessionID;
+  late SessionFirestore? sessionFirestore;
+
+  SessionPage({super.key, required this.session, required this.sessionID, required this.sessionFirestore});
 
   @override
   State<SessionPage> createState() => _SessionPageState();
@@ -17,16 +23,11 @@ class _SessionPageState extends State<SessionPage> {
     showDialog(
       context: context,
       builder: (context) => ExerciseListDialog(
-        sessionName: widget.sessionName,
+        sessionName: widget.session.title,
         onExerciseAdded: (exerciseTitle) {
           setState(() {
-            Provider.of<WorkoutData>(context, listen: false).addExercise(
-              widget.sessionName,
-              exerciseTitle,
-              '',
-              '',
-              '',
-            );
+            widget.session.addExercise(exerciseTitle);
+            widget.sessionFirestore?.updateSession(widget.session, widget.sessionID);
           });
         },
       ),
@@ -35,7 +36,7 @@ class _SessionPageState extends State<SessionPage> {
 
   void removeExerciseTile(String exerciseName) {
     Provider.of<WorkoutData>(context, listen: false)
-        .removeExercise(widget.sessionName, exerciseName);
+        .removeExercise(widget.session.title, exerciseName);
   }
 
   @override
@@ -44,7 +45,7 @@ class _SessionPageState extends State<SessionPage> {
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
         title: Text(
-          widget.sessionName,
+          widget.session.title,
           style: const TextStyle(fontSize: 24),
         ),
         actions: [
@@ -52,10 +53,11 @@ class _SessionPageState extends State<SessionPage> {
         ],
         backgroundColor: Colors.grey[200],
       ),
-      body: Consumer<WorkoutData>(
-        builder: (context, workoutData, child) {
-          final workout = workoutData.getRelevantWorkout(widget.sessionName);
-          return Column(
+      // body: Consumer<WorkoutData>(
+      //   builder: (context, workoutData, child) {
+      //     final workout = workoutData.getRelevantWorkout(widget.session.title);
+      //     return 
+        body: Column(
             children: [
               Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -84,9 +86,9 @@ class _SessionPageState extends State<SessionPage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  child: Row(
+                  child: const Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
+                    children: [
                       Icon(Icons.add, color: Colors.white),
                       SizedBox(width: 8),
                       Text('Add New Exercise'),
@@ -97,14 +99,17 @@ class _SessionPageState extends State<SessionPage> {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: workout.exercises.isNotEmpty
+                  child: widget.session.exercises.isNotEmpty
                       ? ListView.builder(
-                          itemCount: workout.exercises.length,
+                          itemCount: widget.session.exercises.length,
                           itemBuilder: (context, index) {
-                            final exercise = workout.exercises[index];
+                            final exercise = widget.session.exercises[index];
                             return ExerciseTile(
-                              exerciseName: exercise.name,
-                              onRemove: () => removeExerciseTile(exercise.name),
+                              exerciseName: exercise['title'],
+                              session: widget.session,
+                              sessionFirestore: widget.sessionFirestore,
+                              sessionID: widget.sessionID,
+                              onRemove: () => removeExerciseTile(exercise['title']),
                             );
                           },
                         )
@@ -120,12 +125,11 @@ class _SessionPageState extends State<SessionPage> {
                 ),
               ),
             ],
-          );
-        },
-      ),
-    );
+          ));
+        }
+      
   }
 
   void saveSession() {
   }
-}
+
