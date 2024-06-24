@@ -57,7 +57,8 @@ class _HomePageState extends State<HomePage> {
     String newSessionName = newSessionNameController.text;
     Session newSession = Session.withTitle(newSessionName);
 
-    DocumentReference<Object?>? sessionDoc = await sessionFirestore?.addSession(newSession);
+    DocumentReference<Object?>? sessionDoc =
+        await sessionFirestore?.addSession(newSession);
     Navigator.pop(context);
     clear();
     goToSessionPage(newSession, sessionDoc!.id);
@@ -67,7 +68,10 @@ class _HomePageState extends State<HomePage> {
     Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => SessionPage(session: session, sessionID: sessionID, sessionFirestore: sessionFirestore)));
+            builder: (context) => SessionPage(
+                session: session,
+                sessionID: sessionID,
+                sessionFirestore: sessionFirestore)));
   }
 
   // create a new workout
@@ -146,71 +150,71 @@ class _HomePageState extends State<HomePage> {
     BottomNavigationBarController controller =
         Get.put(BottomNavigationBarController());
     return Scaffold(
-          appBar: AppBar(
-            title: const Text(
-              "Palestra",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            actions: [
-              IconButton(onPressed: logout, icon: const Icon(Icons.logout)),
-            ],
-            backgroundColor: Colors.grey[200],
-          ),
-          backgroundColor:
-              Colors.grey[200], // Set the background color of the app to grey
-          body: Obx(() {
-            // Check which page is selected
-            if (controller.index.value == 1) {
-              // If "Workout" page is selected, show the workout list
-              return Column(
-                children: [
-                  if (currentUser?.displayName != null)
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Container(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "Let's work, ${currentUser?.displayName}.",
-                          style: const TextStyle(
-                              fontSize: 35, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ElevatedButton(
-                      onPressed: createNewSession,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black, // Background color
-                        foregroundColor: Colors.white, // Text color
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                        textStyle: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.start, color: Colors.white),
-                          Text(' Start Workout Session'),
-                        ],
-                      ),
+      appBar: AppBar(
+        title: const Text(
+          "Palestra",
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          IconButton(onPressed: logout, icon: const Icon(Icons.logout)),
+        ],
+        backgroundColor: Colors.grey[200],
+      ),
+      backgroundColor:
+          Colors.grey[200], // Set the background color of the app to grey
+      body: Obx(() {
+        // Check which page is selected
+        if (controller.index.value == 1) {
+          // If "Workout" page is selected, show the workout list
+          return Column(
+            children: [
+              if (currentUser?.displayName != null)
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Container(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Let's work, ${currentUser?.displayName}.",
+                      style: const TextStyle(
+                          fontSize: 35, fontWeight: FontWeight.bold),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            "Templates",
-                            style: TextStyle(
-                                fontSize: 21, fontWeight: FontWeight.bold),
-                          ),
-                          ElevatedButton(
+                ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  onPressed: createNewSession,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black, // Background color
+                    foregroundColor: Colors.white, // Text color
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 20),
+                    textStyle: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.start, color: Colors.white),
+                      Text(' Start Workout Session'),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Session History",
+                        style: TextStyle(
+                            fontSize: 25, fontWeight: FontWeight.bold),
+                      ),
+                      /* ElevatedButton(
                             onPressed: createNewWorkout,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.black, // Background color
@@ -229,103 +233,101 @@ class _HomePageState extends State<HomePage> {
                                 Text('Template'),
                               ],
                             ),
-                          ),
-                        ]),
-                  ),
-                  Expanded(
-                    child: StreamBuilder<QuerySnapshot>(
-                      stream: sessionFirestore?.getSessionStream(),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          List sessionsList = snapshot.data!.docs;
-
-                          return ListView.builder(
-                            itemCount: sessionsList.length,
-                            itemBuilder: (context, index) {
-                              //Get Each Individual Session Doc
-                              DocumentSnapshot document = sessionsList[index];
-                              String docID = document.id;
-
-                              //Get Session from Doc
-                              Session session = Session.fromJson(document.data() as Map<String, dynamic>);
-
-                              return ListTile(
-                                title: Text(session.title,
-                                    style: const TextStyle(fontSize: 18)),
-                                subtitle: Text(session.date.toString()),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.arrow_forward_ios),
-                                  onPressed: () =>
-                                      goToSessionPage(session, docID),
-                                ),
-                              );
-                            },
-                          );
-                        } else {
-                          return const Column(
-                            children: [
-                              SizedBox(height: 150),
-                              Center(child: Text("No data available")),
-                            ]
-                          );
-                        }
-                      }
-                    ),
-
-                    // child: workoutList.isNotEmpty
-                    //     ? ListView.builder(
-                    //         itemCount: workoutList.length,
-                    //         itemBuilder: (context, index) {
-                    //           return ListTile(
-                    //             title: Text(workoutList[index].name,
-                    //                 style: const TextStyle(fontSize: 18)),
-                    //             trailing: IconButton(
-                    //               icon: const Icon(Icons.arrow_forward_ios),
-                    //               onPressed: () =>
-                    //                   goToWorkoutPage(workoutList[index].name),
-                    //             ),
-                    //           );
-                    //         },
-                    //       )
-                    //     : const Column(
-                    //         children: [
-                    //           SizedBox(height: 150),
-                    //           Center(child: Text("No data available")),
-                    //         ]
-                    //       ),
-                  ),
-                ],
-              );
-            } else {
-              // Otherwise, show the selected page from the controller
-              return controller.pages[controller.index.value];
-            }
-          }),
-          bottomNavigationBar: Container(
-            color: Colors.black,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
-              child: GNav(
-                backgroundColor: Colors.black,
-                color: Colors.white,
-                activeColor: Colors.white,
-                tabBackgroundColor: Colors.grey.shade800,
-                iconSize: 30,
-                gap: 8,
-                padding: const EdgeInsets.all(16),
-                tabs: const [
-                  GButton(icon: Icons.trending_up, text: "Analyze"),
-                  GButton(icon: Icons.add, text: "Workout"),
-                  GButton(icon: Icons.fitness_center, text: "Exercises"),
-                  GButton(icon: Icons.chat, text: "AI"),
-                ],
-                selectedIndex: controller.index.value,
-                onTabChange: (value) {
-                  controller.index.value = value;
-                },
+                          ), */
+                    ]),
               ),
-            ),
+              Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                    stream: sessionFirestore?.getSessionStream(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        List sessionsList = snapshot.data!.docs;
+
+                        return ListView.builder(
+                          itemCount: sessionsList.length,
+                          itemBuilder: (context, index) {
+                            //Get Each Individual Session Doc
+                            DocumentSnapshot document = sessionsList[index];
+                            String docID = document.id;
+
+                            //Get Session from Doc
+                            Session session = Session.fromJson(
+                                document.data() as Map<String, dynamic>);
+
+                            return ListTile(
+                              title: Text(session.title,
+                                  style: const TextStyle(fontSize: 18)),
+                              subtitle: Text(session.date.toString()),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.arrow_forward_ios),
+                                onPressed: () =>
+                                    goToSessionPage(session, docID),
+                              ),
+                            );
+                          },
+                        );
+                      } else {
+                        return const Column(children: [
+                          SizedBox(height: 150),
+                          Center(child: Text("No data available")),
+                        ]);
+                      }
+                    }),
+
+                // child: workoutList.isNotEmpty
+                //     ? ListView.builder(
+                //         itemCount: workoutList.length,
+                //         itemBuilder: (context, index) {
+                //           return ListTile(
+                //             title: Text(workoutList[index].name,
+                //                 style: const TextStyle(fontSize: 18)),
+                //             trailing: IconButton(
+                //               icon: const Icon(Icons.arrow_forward_ios),
+                //               onPressed: () =>
+                //                   goToWorkoutPage(workoutList[index].name),
+                //             ),
+                //           );
+                //         },
+                //       )
+                //     : const Column(
+                //         children: [
+                //           SizedBox(height: 150),
+                //           Center(child: Text("No data available")),
+                //         ]
+                //       ),
+              ),
+            ],
+          );
+        } else {
+          // Otherwise, show the selected page from the controller
+          return controller.pages[controller.index.value];
+        }
+      }),
+      bottomNavigationBar: Container(
+        color: Colors.black,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+          child: GNav(
+            backgroundColor: Colors.black,
+            color: Colors.white,
+            activeColor: Colors.white,
+            tabBackgroundColor: Colors.grey.shade800,
+            iconSize: 30,
+            gap: 8,
+            padding: const EdgeInsets.all(16),
+            tabs: const [
+              GButton(icon: Icons.trending_up, text: "Analyze"),
+              GButton(icon: Icons.add, text: "Workout"),
+              GButton(icon: Icons.fitness_center, text: "Exercises"),
+              GButton(icon: Icons.chat, text: "AI"),
+            ],
+            selectedIndex: controller.index.value,
+            onTabChange: (value) {
+              controller.index.value = value;
+            },
           ),
-        );
-      }
+        ),
+      ),
+    );
   }
+}

@@ -20,20 +20,53 @@ class ExercisesPage extends StatelessWidget {
           if (snapshot.hasData) {
             List exerciseList = snapshot.data!.docs;
 
-            return ListView.builder(
-              itemCount: exerciseList.length,
-              itemBuilder: (context, index) {
-                //Get Each Individual Exercise Doc
-                DocumentSnapshot document = exerciseList[index];
-                String docID = document.id;
-
-                // Get Exercise from Doc
-                ExerciseInfo exercise = ExerciseInfo.fromJson(document.data() as Map<String, dynamic>);
-
-                return ListTile(
-                  title: Text(exercise.title),
-                );
-              },
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Container(
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      "Exercise Library",
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: exerciseList.length,
+                    itemBuilder: (context, index) {
+                      //Get each individual exercise doc
+                      DocumentSnapshot document = exerciseList[index];
+                      String docID = document.id;
+                  
+                      // Get exercise from doc
+                      ExerciseInfo exercise = ExerciseInfo.fromJson(document.data() as Map<String, dynamic>);
+                  
+                      return SingleChildScrollView(
+                        child: ListTile(
+                          title: Text(
+                            exercise.title,
+                            style: TextStyle(fontSize: 18)
+                            ),
+                            subtitle: Text(
+                              exercise.primaryMuscles[0]
+                            ),
+                            tileColor: Colors.grey[200],
+                            // trailing: IconButton(
+                                // icon: const Icon(Icons.arrow_forward_ios),
+                                // onPressed: () =>
+                                    
+                              // ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             );
           } else {
             return const Text("No Notes");

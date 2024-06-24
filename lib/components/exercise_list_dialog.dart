@@ -14,68 +14,66 @@ class ExerciseListDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.8,
-          maxWidth: MediaQuery.of(context).size.width * 0.8,
-        ),
-        padding: EdgeInsets.all(16.0),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(
-              child: Text(
-                "Exercises",
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Text(
+                  "Exercises",
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 16),
-            Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: exerciseFirestore.getExercisesStream(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    List<DocumentSnapshot> exerciseList = snapshot.data!.docs;
-
-                    if (exerciseList.isEmpty) {
-                      return Center(child: Text("No Exercises"));
+              SizedBox(height: 16),
+              Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: exerciseFirestore.getExercisesStream(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      List<DocumentSnapshot> exerciseList = snapshot.data!.docs;
+        
+                      if (exerciseList.isEmpty) {
+                        return Center(child: Text("No Exercises"));
+                      }
+        
+                      return Expanded(
+                        child: ListView.builder(
+                          itemCount: exerciseList.length,
+                          itemBuilder: (context, index) {
+                            DocumentSnapshot document = exerciseList[index];
+                            String docID = document.id;
+                        
+                            ExerciseInfo exerciseInfo = ExerciseInfo.fromJson(
+                                document.data() as Map<String, dynamic>);
+                        
+                            return ListTile(
+                              title: Text(exerciseInfo.title),
+                              subtitle: Text(exerciseInfo.primaryMuscles[0]),
+                              trailing: IconButton(
+                                onPressed: () {
+                                  onExerciseAdded(exerciseInfo.title);
+                                  Navigator.of(context).pop();
+                                },
+                                icon: Icon(Icons.add),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text("Error loading exercises"));
+                    } else {
+                      return Center(child: CircularProgressIndicator());
                     }
-
-                    return ListView.builder(
-                      itemCount: exerciseList.length,
-                      itemBuilder: (context, index) {
-                        DocumentSnapshot document = exerciseList[index];
-                        String docID = document.id;
-
-                        ExerciseInfo exerciseInfo = ExerciseInfo.fromJson(
-                            document.data() as Map<String, dynamic>);
-
-                        return ListTile(
-                          title: Text(exerciseInfo.title),
-                          subtitle: Text(exerciseInfo.primaryMuscles[0]),
-                          trailing: IconButton(
-                            onPressed: () {
-                              onExerciseAdded(exerciseInfo.title);
-                              Navigator.of(context).pop();
-                            },
-                            icon: Icon(Icons.add),
-                          ),
-                        );
-                      },
-                    );
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text("Error loading exercises"));
-                  } else {
-                    return Center(child: CircularProgressIndicator());
-                  }
-                },
+                  },
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
       ),
     );
   }
