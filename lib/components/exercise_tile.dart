@@ -1,4 +1,3 @@
-import 'package:Palestra/data/workout_data.dart';
 import 'package:Palestra/models/session.dart';
 import 'package:Palestra/services/session_firestore.dart';
 import 'package:flutter/material.dart';

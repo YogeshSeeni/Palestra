@@ -1,5 +1,4 @@
 import 'package:Palestra/controller/bottom_nav_bar_controller.dart';
-import 'package:Palestra/data/workout_data.dart';
 import 'package:Palestra/models/session.dart';
 import 'package:Palestra/pages/session_page.dart';
 import 'package:Palestra/services/session_firestore.dart';
@@ -59,7 +58,6 @@ class _HomePageState extends State<HomePage> {
     Session newSession = Session.withTitle(newSessionName);
 
     DocumentReference<Object?>? sessionDoc = await sessionFirestore?.addSession(newSession);
-    Provider.of<WorkoutData>(context, listen: false).addSession(newSessionName);
     Navigator.pop(context);
     clear();
     goToSessionPage(newSession, sessionDoc!.id);
@@ -111,7 +109,6 @@ class _HomePageState extends State<HomePage> {
 
   void saveWorkout() {
     String newWorkoutName = newWorkoutNameController.text;
-    Provider.of<WorkoutData>(context, listen: false).addWorkout(newWorkoutName);
 
     Navigator.pop(context);
     clear();
@@ -148,9 +145,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     BottomNavigationBarController controller =
         Get.put(BottomNavigationBarController());
-    return Consumer<WorkoutData>(
-      builder: (context, value, child) {
-        return Scaffold(
+    return Scaffold(
           appBar: AppBar(
             title: const Text(
               "Palestra",
@@ -332,7 +327,5 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         );
-      },
-    );
+      }
   }
-}

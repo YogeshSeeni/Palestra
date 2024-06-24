@@ -1,6 +1,5 @@
 import 'package:Palestra/components/exercise_list_dialog.dart';
 import 'package:Palestra/components/exercise_tile.dart';
-import 'package:Palestra/data/workout_data.dart';
 import 'package:Palestra/models/session.dart';
 import 'package:Palestra/services/session_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
