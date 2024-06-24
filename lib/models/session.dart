@@ -66,4 +66,22 @@ class Session {
       }
     }
   }
+
+  void removeExercise(String exerciseName) {
+    // for (var i = 0; i < exercises.length; i++) {
+    //   if (exercises[i]['title'] == exerciseName) {
+    //     exercises.
+    //   }
+    // }
+    exercises.removeWhere((exercise) => exercise['title'] == exerciseName);
+  }
+
+  void removeSet(String exerciseName, int setNumber) {
+    for (var i = 0; i < exercises.length; i++) {
+      if (exercises[i]['title'] == exerciseName) {
+        exercises[i]['reps'].removeAt(setNumber);
+        exercises[i]['weights'].removeAt(setNumber);
+      }
+    }
+  }
 }

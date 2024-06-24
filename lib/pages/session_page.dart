@@ -35,8 +35,10 @@ class _SessionPageState extends State<SessionPage> {
   }
 
   void removeExerciseTile(String exerciseName) {
-    Provider.of<WorkoutData>(context, listen: false)
-        .removeExercise(widget.session.title, exerciseName);
+    setState(() {
+      widget.session.removeExercise(exerciseName);
+      widget.sessionFirestore?.updateSession(widget.session, widget.sessionID);
+    });
   }
 
   @override
@@ -48,9 +50,6 @@ class _SessionPageState extends State<SessionPage> {
           widget.session.title,
           style: const TextStyle(fontSize: 24),
         ),
-        actions: [
-          IconButton(onPressed: saveSession, icon: Icon(Icons.save))
-        ],
         backgroundColor: Colors.grey[200],
       ),
       // body: Consumer<WorkoutData>(
