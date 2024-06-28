@@ -15,11 +15,13 @@ class ExerciseListDialog extends StatelessWidget {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
+        padding: const EdgeInsets.all(24.0),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75),
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Center(
+              const Center(
                 child: Text(
                   "Exercises",
                   style: TextStyle(
@@ -28,8 +30,8 @@ class ExerciseListDialog extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(height: 16),
-              Expanded(
+              const SizedBox(height: 16),
+              Flexible(
                 child: StreamBuilder<QuerySnapshot>(
                   stream: exerciseFirestore.getExercisesStream(),
                   builder: (context, snapshot) {
@@ -37,43 +39,40 @@ class ExerciseListDialog extends StatelessWidget {
                       List<DocumentSnapshot> exerciseList = snapshot.data!.docs;
         
                       if (exerciseList.isEmpty) {
-                        return Center(child: Text("No Exercises"));
+                        return const Center(child: Text("No Exercises"));
                       }
         
-                      return Expanded(
-                        child: ListView.builder(
-                          itemCount: exerciseList.length,
-                          itemBuilder: (context, index) {
-                            DocumentSnapshot document = exerciseList[index];
-                            String docID = document.id;
-                        
-                            ExerciseInfo exerciseInfo = ExerciseInfo.fromJson(
-                                document.data() as Map<String, dynamic>);
-                        
-                            return ListTile(
-                              title: Text(exerciseInfo.title),
-                              subtitle: Text(exerciseInfo.primaryMuscles[0]),
-                              trailing: IconButton(
-                                onPressed: () {
-                                  onExerciseAdded(exerciseInfo.title);
-                                  Navigator.of(context).pop();
-                                },
-                                icon: Icon(Icons.add),
-                              ),
-                            );
-                          },
-                        ),
+                      return ListView.builder(
+                        itemCount: exerciseList.length,
+                        itemBuilder: (context, index) {
+                          DocumentSnapshot document = exerciseList[index];
+                          String docID = document.id;
+                      
+                          ExerciseInfo exerciseInfo = ExerciseInfo.fromJson(
+                              document.data() as Map<String, dynamic>);
+                      
+                          return ListTile(
+                            title: Text(exerciseInfo.title),
+                            subtitle: Text(exerciseInfo.primaryMuscles[0]),
+                            onTap: () {
+                              onExerciseAdded(exerciseInfo.title);
+                              Navigator.of(context).pop();
+                            },
+                            trailing: Icon(Icons.add),
+                          );
+                        },
                       );
                     } else if (snapshot.hasError) {
-                      return Center(child: Text("Error loading exercises"));
+                      return const Center(child: Text("Error loading exercises"));
                     } else {
-                      return Center(child: CircularProgressIndicator());
+                      return const Center(child: CircularProgressIndicator());
                     }
                   },
                 ),
               ),
             ],
           ),
+        ),
       ),
     );
   }

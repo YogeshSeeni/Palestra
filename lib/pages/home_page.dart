@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:provider/provider.dart';
 import 'package:get/get.dart';
 
 class HomePage extends StatefulWidget {
@@ -204,12 +203,12 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
+              const Padding(
+                padding: EdgeInsets.all(16.0),
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         "Session History",
                         style: TextStyle(
                             fontSize: 25, fontWeight: FontWeight.bold),
@@ -258,11 +257,10 @@ class _HomePageState extends State<HomePage> {
                               title: Text(session.title,
                                   style: const TextStyle(fontSize: 18)),
                               subtitle: Text(session.date.toString()),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.arrow_forward_ios),
-                                onPressed: () =>
-                                    goToSessionPage(session, docID),
-                              ),
+                              onTap: () => goToSessionPage(session, docID),
+                              trailing: Icon(
+                                (Icons.arrow_forward_ios),
+                              ), 
                             );
                           },
                         );

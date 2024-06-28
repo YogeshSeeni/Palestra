@@ -89,13 +89,13 @@ class _ExerciseTileState extends State<ExerciseTile> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Weight'),
+              const Text('Weight'),
               SizedBox(
                 width: 60,
                 child: TextField(
                   controller: TextEditingController()..text = weight.toString(),
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Weight',
                   ),
                   onChanged: (weight) => {
@@ -108,13 +108,13 @@ class _ExerciseTileState extends State<ExerciseTile> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Reps'),
+              const Text('Reps'),
               SizedBox(
                 width: 60,
                 child: TextField(
                   controller: TextEditingController()..text = reps.toString(),
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Reps',
                   ),
                   onChanged: (reps) => {
@@ -125,7 +125,7 @@ class _ExerciseTileState extends State<ExerciseTile> {
             ],
           ),
           IconButton(
-            icon: Icon(Icons.delete),
+            icon: const Icon(Icons.delete),
             onPressed: () {
               removeSet(setNumber);
             },
@@ -144,10 +144,10 @@ class _ExerciseTileState extends State<ExerciseTile> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: EdgeInsets.all(8.0),
+      margin: const EdgeInsets.all(8.0),
       color: Colors.grey[300],
       child: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -156,21 +156,21 @@ class _ExerciseTileState extends State<ExerciseTile> {
               children: [
                 Text(
                   widget.exerciseName,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 IconButton(
-                  icon: Icon(Icons.delete),
+                  icon: const Icon(Icons.delete),
                   onPressed: widget.onRemove,
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Column(children: sets),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: addSet,
               style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
-              child: Text('+ Add Set', style: TextStyle(color: Colors.white)),
+              child: const Text('+ Add Set', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
