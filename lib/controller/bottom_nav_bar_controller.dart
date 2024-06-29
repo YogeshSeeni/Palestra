@@ -8,7 +8,7 @@ class BottomNavigationBarController extends GetxController {
   RxInt index = 1.obs;
 
   var pages = [
-    const AnalyzePage(),
+    AnalyzePage(),
     const HomePage(),
     ExercisesPage(),
     const AiPage(),
