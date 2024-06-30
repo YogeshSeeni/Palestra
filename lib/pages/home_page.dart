@@ -103,13 +103,6 @@ class _HomePageState extends State<HomePage> {
                 ]));
   }
 
-  // void goToWorkoutPage(String workoutName) {
-  //   Navigator.push(
-  //       context,
-  //       MaterialPageRoute(
-  //           builder: (context) => WorkoutPage(workoutName: workoutName)));
-  // }
-
   void saveWorkout() {
     String newWorkoutName = newWorkoutNameController.text;
 
@@ -213,26 +206,6 @@ class _HomePageState extends State<HomePage> {
                         style: TextStyle(
                             fontSize: 25, fontWeight: FontWeight.bold),
                       ),
-                      /* ElevatedButton(
-                            onPressed: createNewWorkout,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black, // Background color
-                              foregroundColor: Colors.white, // Text color
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 20),
-                              textStyle: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.add, color: Colors.white),
-                                Text('Template'),
-                              ],
-                            ),
-                          ), */
                     ]),
               ),
               Expanded(
@@ -271,28 +244,6 @@ class _HomePageState extends State<HomePage> {
                         ]);
                       }
                     }),
-
-                // child: workoutList.isNotEmpty
-                //     ? ListView.builder(
-                //         itemCount: workoutList.length,
-                //         itemBuilder: (context, index) {
-                //           return ListTile(
-                //             title: Text(workoutList[index].name,
-                //                 style: const TextStyle(fontSize: 18)),
-                //             trailing: IconButton(
-                //               icon: const Icon(Icons.arrow_forward_ios),
-                //               onPressed: () =>
-                //                   goToWorkoutPage(workoutList[index].name),
-                //             ),
-                //           );
-                //         },
-                //       )
-                //     : const Column(
-                //         children: [
-                //           SizedBox(height: 150),
-                //           Center(child: Text("No data available")),
-                //         ]
-                //       ),
               ),
             ],
           );

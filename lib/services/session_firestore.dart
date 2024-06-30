@@ -38,6 +38,36 @@ class SessionFirestore {
     print("Error fetching sessions: $e");
     return [];
   }
-}
+} 
+  Future<List<Map<String, dynamic>>> getExercises() async {
+    //Get data from firestore
+    QuerySnapshot querySnapshot = await sessions.orderBy('date', descending: false).get();
+    final List<Object?> allSessions = querySnapshot.docs.map((doc) => doc.data()).toList();
+
+    List<Map<String, dynamic>> exercises = [];
+
+    allSessions.forEach((data) {
+      Session session = Session.fromJson(data as Map<String, dynamic>);
+
+      session.exercises.forEach((exercise) {
+        bool added = false;
+
+        for (var i = 0; i < exercises.length; i++) {
+          if (exercises[i]['title'] == exercise['title']) {
+            exercises[i]['reps'] = exercises[i]['reps'] + exercise['reps'];
+            exercises[i]['weights'] = exercises[i]['weights'] + exercise['weights'];
+            added = true;
+            break;
+          }
+        }
+
+        if (added == false) {
+          exercises.add(exercise);
+        }
+      });
+    });
+
+    return exercises;
+  }
 
 }
