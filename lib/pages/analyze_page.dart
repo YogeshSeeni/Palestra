@@ -101,11 +101,38 @@ class _AnalyzePageState extends State<AnalyzePage> {
     );
   }
 
+  Widget _buildStats(Map<String, dynamic> exercise) {
+    int totalReps = exercise['reps'].reduce((a, b) => a + b);
+    int totalWeight = exercise['weights'].reduce((a, b) => a + b);
+    int numberOfSets = exercise['reps'].length;
+    double averageReps = totalReps / numberOfSets;
+    double averageWeight = totalWeight / numberOfSets;
+    int maxReps = exercise['reps'].reduce((a, b) => a > b ? a : b);
+    int maxWeight = exercise['weights'].reduce((a, b) => a > b ? a : b);
+    
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Total Reps: $totalReps', style: TextStyle(fontSize: 16)),
+          Text('Total Sets: $numberOfSets', style: TextStyle(fontSize: 16)),
+          Text('Total Weight Lifted: $totalWeight lb', style: TextStyle(fontSize: 16)),
+          Text('Average Reps per Set: ${averageReps.toStringAsFixed(2)}', style: TextStyle(fontSize: 16)),
+          Text('Average Weight per Set: ${averageWeight.toStringAsFixed(2)} lb', style: TextStyle(fontSize: 16)),
+          Text('Max Reps in a Single Set: $maxReps', style: TextStyle(fontSize: 16)),
+          Text('Max Weight in a Single Set: $maxWeight lb', style: TextStyle(fontSize: 16)),
+          
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          Colors.grey[200], 
+      backgroundColor: Colors.grey[200],
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : Padding(
@@ -153,6 +180,11 @@ class _AnalyzePageState extends State<AnalyzePage> {
                           SizedBox(
                             height: 200,
                             child: LineChart(_generateWeightsChartData(exercises[index])),
+                          ),
+                          SizedBox(height: 16),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: _buildStats(exercises[index]),
                           ),
                           SizedBox(height: 16),
                         ],
