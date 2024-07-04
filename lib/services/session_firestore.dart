@@ -23,24 +23,16 @@ class SessionFirestore {
   }
 
   Future<List<Map<String, dynamic>>> fetchUserSessions() async {
-  try {
-    QuerySnapshot querySnapshot = await sessions.get();
-    
-    List<Map<String, dynamic>> sessionList = querySnapshot.docs.map((doc) {
-      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      // print('Fetched session: ${data.toString()}');  // Print each fetched session for debugging
-      return data;
-    }).toList();
-    
-    // print('Total sessions fetched: ${sessionList.length}');
-    return sessionList;
-  } catch (e) {
-    print("Error fetching sessions: $e");
-    return [];
+    try {
+      QuerySnapshot querySnapshot = await sessions.get();
+      return querySnapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+    } catch (e) {
+      print("Error fetching sessions: $e");
+      return [];
+    }
   }
-} 
+
   Future<List<Map<String, dynamic>>> getExercises() async {
-    //Get data from firestore
     QuerySnapshot querySnapshot = await sessions.orderBy('date', descending: false).get();
     final List<Object?> allSessions = querySnapshot.docs.map((doc) => doc.data()).toList();
 
@@ -70,4 +62,28 @@ class SessionFirestore {
     return exercises;
   }
 
+  Future<List<Map<String, dynamic>>> fetchExerciseData(String exerciseTitle) async {
+    try {
+      QuerySnapshot querySnapshot = await sessions.get();
+      List<Map<String, dynamic>> fetchedExercises = [];
+
+      for (var doc in querySnapshot.docs) {
+        List<dynamic> exercises = doc['exercises'];
+        for (var ex in exercises) {
+          if (ex['title'] == exerciseTitle) {
+            fetchedExercises.add({
+              'date': doc['date'],
+              'reps': ex['reps'],
+              'weights': ex['weights']
+            });
+          }
+        }
+      }
+
+      return fetchedExercises;
+    } catch (e) {
+      print("Error fetching exercise data: $e");
+      return [];
+    }
+  }
 }

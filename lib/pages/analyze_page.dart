@@ -1,199 +1,199 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:Palestra/services/session_firestore.dart';
+import 'package:Palestra/util/workouts_per_week.dart';
+import 'package:Palestra/util/exercise_analytics.dart';
+import 'package:Palestra/components/exercise_list_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:Palestra/services/session_firestore.dart';
 
 class AnalyzePage extends StatefulWidget {
   @override
   _AnalyzePageState createState() => _AnalyzePageState();
 }
 
-class _AnalyzePageState extends State<AnalyzePage> {
-  late SessionFirestore sessionFirestore;
-  List<Map<String, dynamic>> exercises = [];
-  bool isLoading = true;
+class _AnalyzePageState extends State<AnalyzePage> with AutomaticKeepAliveClientMixin {
+  List<Widget> cards = [];
 
   @override
-  void initState() {
-    super.initState();
-    _initializeSessionFirestore();
+  bool get wantKeepAlive => true;
+
+  void addWorkoutsPerWeekCard() {
+    setState(() {
+      cards.add(WorkoutsPerWeekCard(
+        key: UniqueKey(),
+        onRemove: () => removeCard(WorkoutsPerWeekCard),
+      ));
+    });
   }
 
-  void _initializeSessionFirestore() {
+  void addExerciseAnalyticsCard(String exercise, String metric) {
+    _fetchExerciseDataCount(exercise).then((count) {
+      if (count >= 3) {
+        setState(() {
+          cards.add(ExerciseAnalyticsCard(
+            key: UniqueKey(),
+            exercise: exercise,
+            metric: metric,
+            onRemove: () => removeCard(ExerciseAnalyticsCard),
+          ));
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('You need at least three sessions with this exercise to view its analytics.')),
+        );
+      }
+    });
+  }
+
+  Future<int> _fetchExerciseDataCount(String exercise) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      sessionFirestore = SessionFirestore(userID: user.uid);
-      _fetchExercises();
-    } else {
-      // Handle user not being logged in
-      setState(() {
-        isLoading = false;
-      });
+      final sessionFirestore = SessionFirestore(userID: user.uid);
+      List<Map<String, dynamic>> fetchedData = await sessionFirestore.fetchExerciseData(exercise);
+      return fetchedData.length;
     }
+    return 0;
   }
 
-  Future<void> _fetchExercises() async {
-    try {
-      List<Map<String, dynamic>> fetchedExercises = await sessionFirestore.getExercises();
-      setState(() {
-        exercises = fetchedExercises;
-        isLoading = false;
-      });
-    } catch (e) {
-      print("Error fetching exercises: $e");
-      setState(() {
-        isLoading = false;
-      });
-    }
+  void removeCard(Type cardType) {
+    setState(() {
+      cards.removeWhere((card) => card.runtimeType == cardType);
+    });
   }
 
-  LineChartData _generateRepsChartData(Map<String, dynamic> exercise) {
-    List<FlSpot> repsSpots = [];
-
-    for (int i = 0; i < exercise['reps'].length; i++) {
-      repsSpots.add(FlSpot(i.toDouble(), exercise['reps'][i].toDouble()));
-    }
-
-    return LineChartData(
-      lineBarsData: [
-        LineChartBarData(
-          spots: repsSpots,
-          isCurved: true,
-          barWidth: 2,
-          colors: [Colors.blue],
-          dotData: FlDotData(show: false),
-          belowBarData: BarAreaData(show: false),
-        ),
-      ],
-      titlesData: FlTitlesData(
-        leftTitles: SideTitles(showTitles: true, getTitles: (value) => value.toInt().toString()),
-        bottomTitles: SideTitles(showTitles: true, getTitles: (value) => (value + 1).toInt().toString()),
-      ),
-      borderData: FlBorderData(show: true),
-      gridData: FlGridData(show: true),
-    );
-  }
-
-  LineChartData _generateWeightsChartData(Map<String, dynamic> exercise) {
-    List<FlSpot> weightSpots = [];
-
-    for (int i = 0; i < exercise['weights'].length; i++) {
-      weightSpots.add(FlSpot(i.toDouble(), exercise['weights'][i].toDouble()));
-    }
-
-    return LineChartData(
-      lineBarsData: [
-        LineChartBarData(
-          spots: weightSpots,
-          isCurved: true,
-          barWidth: 2,
-          colors: [Colors.red],
-          dotData: FlDotData(show: false),
-          belowBarData: BarAreaData(show: false),
-        ),
-      ],
-      titlesData: FlTitlesData(
-        leftTitles: SideTitles(showTitles: true, getTitles: (value) => value.toInt().toString()),
-        bottomTitles: SideTitles(showTitles: true, getTitles: (value) => (value + 1).toInt().toString()),
-      ),
-      borderData: FlBorderData(show: true),
-      gridData: FlGridData(show: true),
-    );
-  }
-
-  Widget _buildStats(Map<String, dynamic> exercise) {
-    int totalReps = exercise['reps'].reduce((a, b) => a + b);
-    int totalWeight = exercise['weights'].reduce((a, b) => a + b);
-    int numberOfSets = exercise['reps'].length;
-    double averageReps = totalReps / numberOfSets;
-    double averageWeight = totalWeight / numberOfSets;
-    int maxReps = exercise['reps'].reduce((a, b) => a > b ? a : b);
-    int maxWeight = exercise['weights'].reduce((a, b) => a > b ? a : b);
-    
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return Scaffold(
+      backgroundColor: Colors.grey[200],
+      body: Column(
         children: [
-          Text('Total Reps: $totalReps', style: TextStyle(fontSize: 16)),
-          Text('Total Sets: $numberOfSets', style: TextStyle(fontSize: 16)),
-          Text('Total Weight Lifted: $totalWeight lb', style: TextStyle(fontSize: 16)),
-          Text('Average Reps per Set: ${averageReps.toStringAsFixed(2)}', style: TextStyle(fontSize: 16)),
-          Text('Average Weight per Set: ${averageWeight.toStringAsFixed(2)} lb', style: TextStyle(fontSize: 16)),
-          Text('Max Reps in a Single Set: $maxReps', style: TextStyle(fontSize: 16)),
-          Text('Max Weight in a Single Set: $maxWeight lb', style: TextStyle(fontSize: 16)),
-          
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'Analyze',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                ElevatedButton.icon(
+                  icon: Icon(Icons.add, color: Colors.white),
+                  label: Text(
+                    'Widget',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+                  onPressed: _showAddWidgetDialog,
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16.0),
+              itemCount: cards.length,
+              itemBuilder: (context, index) {
+                return cards[index];
+              },
+            ),
+          ),
         ],
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[200],
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: ListView.builder(
-                itemCount: exercises.length,
-                itemBuilder: (context, index) {
-                  return Card(
-                    margin: EdgeInsets.symmetric(vertical: 8.0),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            exercises[index]['title'],
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          SizedBox(height: 16),
-                          Text(
-                            'Reps',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          SizedBox(
-                            height: 200,
-                            child: LineChart(_generateRepsChartData(exercises[index])),
-                          ),
-                          SizedBox(height: 16),
-                          Text(
-                            'Weights',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          SizedBox(
-                            height: 200,
-                            child: LineChart(_generateWeightsChartData(exercises[index])),
-                          ),
-                          SizedBox(height: 16),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: _buildStats(exercises[index]),
-                          ),
-                          SizedBox(height: 16),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
+  void _showAddWidgetDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Add Widget', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Divider(),
+                ListTile(
+                  title: Text('Workouts Per Week'),
+                  subtitle: Text('Display workout consistency'),
+                  onTap: () {
+                    addWorkoutsPerWeekCard();
+                    Navigator.of(context).pop();
+                  },
+                ),
+                ListTile(
+                  title: Text('Exercise Analytics'),
+                  subtitle: Text('Track specific exercises'),
+                  onTap: () async {
+                    Navigator.of(context).pop();
+                    _showExerciseAnalyticsChoiceDialog();
+                  },
+                ),
+              ],
             ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showExerciseAnalyticsChoiceDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Exercise Analytics', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Divider(),
+                ListTile(
+                  title: Text('1RM'),
+                  subtitle: Text('Track 1RM progression'),
+                  onTap: () async {
+                    Navigator.of(context).pop();
+                    String? exercise = await showDialog<String>(
+                      context: context,
+                      builder: (context) => ExerciseListDialog(
+                        sessionName: 'sessionName',
+                        onExerciseAdded: (exercise) {
+                          addExerciseAnalyticsCard(exercise, "1RM");
+                        },
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  title: Text('Volume'),
+                  subtitle: Text('Track volume progression'),
+                  onTap: () async {
+                    Navigator.of(context).pop();
+                    String? exercise = await showDialog<String>(
+                      context: context,
+                      builder: (context) => ExerciseListDialog(
+                        sessionName: 'sessionName',
+                        onExerciseAdded: (exercise) {
+                          addExerciseAnalyticsCard(exercise, "Volume");
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

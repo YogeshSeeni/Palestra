@@ -125,7 +125,3 @@ class _SessionPageState extends State<SessionPage> {
         }
       
   }
-
-  void saveSession() {
-  }
-
