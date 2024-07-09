@@ -38,10 +38,10 @@ class SessionFirestore {
 
     List<Map<String, dynamic>> exercises = [];
 
-    allSessions.forEach((data) {
+    for (var data in allSessions) {
       Session session = Session.fromJson(data as Map<String, dynamic>);
 
-      session.exercises.forEach((exercise) {
+      for (var exercise in session.exercises) {
         bool added = false;
 
         for (var i = 0; i < exercises.length; i++) {
@@ -56,8 +56,8 @@ class SessionFirestore {
         if (added == false) {
           exercises.add(exercise);
         }
-      });
-    });
+      }
+    }
 
     return exercises;
   }

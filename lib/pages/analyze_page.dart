@@ -6,6 +6,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:Palestra/services/session_firestore.dart';
 
 class AnalyzePage extends StatefulWidget {
+  const AnalyzePage({super.key});
+
   @override
   _AnalyzePageState createState() => _AnalyzePageState();
 }
@@ -38,7 +40,7 @@ class _AnalyzePageState extends State<AnalyzePage> with AutomaticKeepAliveClient
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('You need at least three sessions with this exercise to view its analytics.')),
+          const SnackBar(content: Text('You need at least three sessions with this exercise to view its analytics.')),
         );
       }
     });
@@ -73,13 +75,13 @@ class _AnalyzePageState extends State<AnalyzePage> with AutomaticKeepAliveClient
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
+                const Text(
                   'Analyze',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 ElevatedButton.icon(
-                  icon: Icon(Icons.add, color: Colors.white),
-                  label: Text(
+                  icon: const Icon(Icons.add, color: Colors.white),
+                  label: const Text(
                     'Widget',
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   ),
@@ -116,19 +118,19 @@ class _AnalyzePageState extends State<AnalyzePage> with AutomaticKeepAliveClient
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Add Widget', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Divider(),
+                const Text('Add Widget', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Divider(),
                 ListTile(
-                  title: Text('Workouts Per Week'),
-                  subtitle: Text('Display workout consistency'),
+                  title: const Text('Workouts Per Week'),
+                  subtitle: const Text('Display workout consistency'),
                   onTap: () {
                     addWorkoutsPerWeekCard();
                     Navigator.of(context).pop();
                   },
                 ),
                 ListTile(
-                  title: Text('Exercise Analytics'),
-                  subtitle: Text('Track specific exercises'),
+                  title: const Text('Exercise Analytics'),
+                  subtitle: const Text('Track specific exercises'),
                   onTap: () async {
                     Navigator.of(context).pop();
                     _showExerciseAnalyticsChoiceDialog();
@@ -155,11 +157,11 @@ class _AnalyzePageState extends State<AnalyzePage> with AutomaticKeepAliveClient
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Exercise Analytics', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Divider(),
+                const Text('Exercise Analytics', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Divider(),
                 ListTile(
-                  title: Text('1RM'),
-                  subtitle: Text('Track 1RM progression'),
+                  title: const Text('1RM'),
+                  subtitle: const Text('Track 1RM progression'),
                   onTap: () async {
                     Navigator.of(context).pop();
                     String? exercise = await showDialog<String>(
@@ -174,8 +176,8 @@ class _AnalyzePageState extends State<AnalyzePage> with AutomaticKeepAliveClient
                   },
                 ),
                 ListTile(
-                  title: Text('Volume'),
-                  subtitle: Text('Track volume progression'),
+                  title: const Text('Volume'),
+                  subtitle: const Text('Track volume progression'),
                   onTap: () async {
                     Navigator.of(context).pop();
                     String? exercise = await showDialog<String>(

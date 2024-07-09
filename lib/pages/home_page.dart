@@ -231,7 +231,7 @@ class _HomePageState extends State<HomePage> {
                                   style: const TextStyle(fontSize: 18)),
                               subtitle: Text(session.date.toString()),
                               onTap: () => goToSessionPage(session, docID),
-                              trailing: Icon(
+                              trailing: const Icon(
                                 (Icons.arrow_forward_ios),
                               ), 
                             );

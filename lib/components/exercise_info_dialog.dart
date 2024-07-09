@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/exercise.dart';
-import 'package:Palestra/services/exercise_firestore.dart';
 
 class ExerciseInfoDialog extends StatelessWidget {
   final ExerciseInfo exercise;
-  ExerciseInfoDialog({super.key, required this.exercise});
+  const ExerciseInfoDialog({super.key, required this.exercise});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +18,7 @@ class ExerciseInfoDialog extends StatelessWidget {
               Center(
                   child: Text(
                     exercise.title,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
                     ),

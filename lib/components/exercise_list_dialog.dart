@@ -58,7 +58,7 @@ class ExerciseListDialog extends StatelessWidget {
                               onExerciseAdded(exerciseInfo.title);
                               Navigator.of(context).pop();
                             },
-                            trailing: Icon(Icons.add),
+                            trailing: const Icon(Icons.add),
                           );
                         },
                       );

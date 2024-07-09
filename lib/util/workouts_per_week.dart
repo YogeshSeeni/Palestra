@@ -8,7 +8,7 @@ import 'dart:math' as math;
 class WorkoutsPerWeekCard extends StatefulWidget {
   final VoidCallback onRemove;
 
-  WorkoutsPerWeekCard({Key? key, required this.onRemove}) : super(key: key);
+  const WorkoutsPerWeekCard({super.key, required this.onRemove});
 
   @override
   _WorkoutsPerWeekCardState createState() => _WorkoutsPerWeekCardState();
@@ -30,7 +30,7 @@ class _WorkoutsPerWeekCardState extends State<WorkoutsPerWeekCard> {
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           Map<String, int> workoutsPerWeek = {};
@@ -69,20 +69,20 @@ class _WorkoutsPerWeekCardState extends State<WorkoutsPerWeekCard> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       'Workouts Per Week',
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     Row(
                       children: [
                         IconButton(
-                          icon: Icon(Icons.adjust),
+                          icon: const Icon(Icons.adjust),
                           onPressed: () {
                             _showTargetInputDialog(context);
                           },
                         ),
                         IconButton(
-                          icon: Icon(Icons.delete),
+                          icon: const Icon(Icons.delete),
                           onPressed: widget.onRemove,
                         ),
                       ],
@@ -90,7 +90,7 @@ class _WorkoutsPerWeekCardState extends State<WorkoutsPerWeekCard> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Container(
+                SizedBox(
                   height: 200,
                   child: BarChart(
                     BarChartData(
@@ -134,7 +134,7 @@ class _WorkoutsPerWeekCardState extends State<WorkoutsPerWeekCard> {
                 const SizedBox(height: 8),
                 Text(
                   'Target: $targetWorkouts workouts per week',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -150,21 +150,21 @@ class _WorkoutsPerWeekCardState extends State<WorkoutsPerWeekCard> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Set Target Workouts'),
+          title: const Text('Set Target Workouts'),
           content: TextField(
             controller: controller,
             keyboardType: TextInputType.number,
-            decoration: InputDecoration(labelText: 'Target workouts per week'),
+            decoration: const InputDecoration(labelText: 'Target workouts per week'),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Save'),
+              child: const Text('Save'),
               onPressed: () {
                 int? newTarget = int.tryParse(controller.text);
                 if (newTarget != null && newTarget > 0) {

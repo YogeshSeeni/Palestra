@@ -11,7 +11,7 @@ class ExerciseAnalyticsCard extends StatefulWidget {
   final String metric;
   final VoidCallback onRemove;
 
-  ExerciseAnalyticsCard({Key? key, required this.exercise, required this.metric, required this.onRemove}) : super(key: key);
+  const ExerciseAnalyticsCard({super.key, required this.exercise, required this.metric, required this.onRemove});
 
   @override
   _ExerciseAnalyticsCardState createState() => _ExerciseAnalyticsCardState();
@@ -139,17 +139,17 @@ class _ExerciseAnalyticsCardState extends State<ExerciseAnalyticsCard> {
     double interval;
     String Function(double) dateFormatter;
 
-    if (maxX - minX <= Duration(days: 7).inMilliseconds) {
-      interval = Duration(days: 1).inMilliseconds.toDouble();
+    if (maxX - minX <= const Duration(days: 7).inMilliseconds) {
+      interval = const Duration(days: 1).inMilliseconds.toDouble();
       dateFormatter = (value) => DateFormat('M/d').format(DateTime.fromMillisecondsSinceEpoch(value.toInt()));
-    } else if (maxX - minX <= Duration(days: 30).inMilliseconds) {
-      interval = Duration(days: 7).inMilliseconds.toDouble();
+    } else if (maxX - minX <= const Duration(days: 30).inMilliseconds) {
+      interval = const Duration(days: 7).inMilliseconds.toDouble();
       dateFormatter = (value) => DateFormat('M/d').format(DateTime.fromMillisecondsSinceEpoch(value.toInt()));
-    } else if (maxX - minX <= Duration(days: 365).inMilliseconds) {
-      interval = Duration(days: 30).inMilliseconds.toDouble();
+    } else if (maxX - minX <= const Duration(days: 365).inMilliseconds) {
+      interval = const Duration(days: 30).inMilliseconds.toDouble();
       dateFormatter = (value) => DateFormat('MMM').format(DateTime.fromMillisecondsSinceEpoch(value.toInt()));
     } else {
-      interval = Duration(days: 365).inMilliseconds.toDouble();
+      interval = const Duration(days: 365).inMilliseconds.toDouble();
       dateFormatter = (value) => DateFormat('yyyy').format(DateTime.fromMillisecondsSinceEpoch(value.toInt()));
     }
 
@@ -222,13 +222,13 @@ class _ExerciseAnalyticsCardState extends State<ExerciseAnalyticsCard> {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Save'),
+              child: const Text('Save'),
               onPressed: () {
                 double? newTarget = double.tryParse(controller.text);
                 if (newTarget != null && newTarget > 0) {
@@ -259,19 +259,19 @@ class _ExerciseAnalyticsCardState extends State<ExerciseAnalyticsCard> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  widget.exercise + ": ${widget.metric}",
+                  "${widget.exercise}: ${widget.metric}",
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 Row(
                   children: [
                     IconButton(
-                      icon: Icon(Icons.adjust),
+                      icon: const Icon(Icons.adjust),
                       onPressed: () {
                         _showTargetInputDialog(context);
                       },
                     ),
                     IconButton(
-                      icon: Icon(Icons.delete),
+                      icon: const Icon(Icons.delete),
                       onPressed: widget.onRemove,
                     ),
                   ],
@@ -279,9 +279,9 @@ class _ExerciseAnalyticsCardState extends State<ExerciseAnalyticsCard> {
               ],
             ),
             isLoading
-                ? Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator())
                 : exerciseData.isEmpty
-                    ? Center(child: Text('No data available for selected exercise'))
+                    ? const Center(child: Text('No data available for selected exercise'))
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -294,7 +294,7 @@ class _ExerciseAnalyticsCardState extends State<ExerciseAnalyticsCard> {
                           ),
                           Text(
                             'Target: $targetValue pounds',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
