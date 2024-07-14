@@ -86,4 +86,31 @@ class SessionFirestore {
       return [];
     }
   }
+
+  Future<Map<String, List<Map<String, dynamic>>>> fetchAllExercisesForChatbot() async {
+    try {
+      QuerySnapshot querySnapshot = await sessions.get();
+      Map<String, List<Map<String, dynamic>>> exerciseData = {};
+
+      for (var doc in querySnapshot.docs) {
+        List<dynamic> exercises = doc['exercises'];
+        for (var ex in exercises) {
+          String title = ex['title'];
+          if (!exerciseData.containsKey(title)) {
+            exerciseData[title] = [];
+          }
+          exerciseData[title]!.add({
+            'date': (doc['date'] as Timestamp).toDate().toIso8601String(),
+            'reps': ex['reps'],
+            'weights': ex['weights']
+          });
+        }
+      }
+
+      return exerciseData;
+    } catch (e) {
+      print("Error fetching all exercise data: $e");
+      return {};
+    }
+  }
 }

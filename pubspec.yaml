@@ -42,7 +42,9 @@ dependencies:
   firebase_auth: ^5.1.0
   cloud_firestore: ^5.0.1
   fl_chart: ^0.35.0
-  intl: ^0.17.0
+  intl: 0.19.0
+  flutter_gemini: ^2.0.4
+  dash_chat_2: ^0.0.21
 
 dev_dependencies:
   flutter_test:
