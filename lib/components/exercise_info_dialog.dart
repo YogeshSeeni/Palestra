@@ -16,17 +16,15 @@ class ExerciseInfoDialog extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
-                  child: Text(
-                    exercise.title,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
+                child: Text(
+                  exercise.title,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 16),
-              Text('Description: ${exercise.description}'),
-              const SizedBox(height: 10),
+              ),
+              const SizedBox(height: 16),
               Text('Primary Muscles: ${exercise.primaryMuscles.join(', ')}'),
               const SizedBox(height: 10),
               Text('Secondary Muscles: ${exercise.secondaryMuscles.join(', ')}'),
@@ -39,3 +37,4 @@ class ExerciseInfoDialog extends StatelessWidget {
     );
   }
 }
+

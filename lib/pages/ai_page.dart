@@ -1,9 +1,9 @@
 import 'dart:convert';
-
 import 'package:Palestra/services/session_firestore.dart';
 import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 
 class AiPage extends StatefulWidget {
@@ -40,7 +40,30 @@ class _AiPageState extends State<AiPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[200],
-      body: _buildUI(),
+      body: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(20.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'Coach',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  )
+                ),
+                Icon(Icons.contact_phone)
+              ],
+            ),
+          ),
+          Expanded(
+            child: _buildUI()
+          ),
+        ],
+      ),
     );
   }
 

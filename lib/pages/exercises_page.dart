@@ -2,19 +2,41 @@ import 'package:Palestra/services/exercise_firestore.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:Palestra/components/exercise_info_dialog.dart';
+import 'package:Palestra/components/add_exercise_dialog.dart';
 import '../models/exercise.dart';
 
-class ExercisesPage extends StatelessWidget {
-  // Exercise Firestore reference
-  final ExerciseFirestore exerciseFirestore = ExerciseFirestore();
+class ExercisesPage extends StatefulWidget {
+  const ExercisesPage({super.key});
 
-  ExercisesPage({super.key});
+  @override
+  _ExercisesPageState createState() => _ExercisesPageState();
+}
+
+class _ExercisesPageState extends State<ExercisesPage> {
+  final ExerciseFirestore exerciseFirestore = ExerciseFirestore();
 
   void _showExerciseInfo(BuildContext context, ExerciseInfo exercise) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return ExerciseInfoDialog(exercise: exercise);
+      },
+    );
+  }
+
+  void _showAddExerciseDialog() {
+    // Implement the logic to show a dialog for adding an exercise
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AddExerciseDialog(
+          onAdd: (ExerciseInfo newExercise) {
+            setState(() {
+              // Add the new exercise to Firestore or the local list
+              exerciseFirestore.addExercise(newExercise);
+            });
+          },
+        );
       },
     );
   }
@@ -33,15 +55,29 @@ class ExercisesPage extends StatelessWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Container(
-                    alignment: Alignment.centerLeft,
-                    child: const Text(
-                      "Exercise Library",
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "Library",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.add, color: Colors.white),
+                        label: const Text(
+                          'Exercise',
+                          style: TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black),
+                        onPressed: _showAddExerciseDialog,
+                      ),
+                    ],
                   ),
                 ),
                 Expanded(
@@ -50,10 +86,10 @@ class ExercisesPage extends StatelessWidget {
                     itemBuilder: (context, index) {
                       // Get each individual exercise doc
                       DocumentSnapshot document = exerciseList[index];
-                      String docID = document.id;
 
                       // Get exercise from doc
-                      ExerciseInfo exercise = ExerciseInfo.fromJson(document.data() as Map<String, dynamic>);
+                      ExerciseInfo exercise = ExerciseInfo.fromJson(
+                          document.data() as Map<String, dynamic>);
 
                       return ListTile(
                         title: Text(
