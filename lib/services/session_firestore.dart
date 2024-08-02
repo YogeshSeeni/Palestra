@@ -9,23 +9,21 @@ class SessionFirestore {
     sessions = FirebaseFirestore.instance.collection('users/$userID/sessions');
   }
 
-  Future<DocumentReference<Object?>> addSession(Session session) {
-    return sessions.add(session.toJson());
-  }
+  Future<DocumentReference<Object?>> addSession(Session session) => 
+    sessions.add(session.toJson());
 
-  Stream<QuerySnapshot> getSessionStream() {
-    final sessionStream = sessions.orderBy('date', descending: true).snapshots();
-    return sessionStream;
-  }
+  Stream<QuerySnapshot> getSessionStream() => 
+    sessions.orderBy('date', descending: true).snapshots();
 
-  Future<void> updateSession(Session session, String sessionID) {
-    return sessions.doc(sessionID).update(session.toJson());
-  }
+  Future<void> updateSession(Session session, String sessionID) => 
+    sessions.doc(sessionID).update(session.toJson());
 
   Future<List<Map<String, dynamic>>> fetchUserSessions() async {
     try {
       QuerySnapshot querySnapshot = await sessions.get();
-      return querySnapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+      return querySnapshot.docs
+        .map((doc) => doc.data() as Map<String, dynamic>)
+        .toList();
     } catch (e) {
       print("Error fetching sessions: $e");
       return [];
@@ -33,54 +31,41 @@ class SessionFirestore {
   }
 
   Future<List<Map<String, dynamic>>> getExercises() async {
-    QuerySnapshot querySnapshot = await sessions.orderBy('date', descending: false).get();
-    final List<Object?> allSessions = querySnapshot.docs.map((doc) => doc.data()).toList();
+    try {
+      QuerySnapshot querySnapshot = await sessions.orderBy('date', descending: false).get();
+      Map<String, Map<String, dynamic>> exerciseMap = {};
 
-    List<Map<String, dynamic>> exercises = [];
-
-    for (var data in allSessions) {
-      Session session = Session.fromJson(data as Map<String, dynamic>);
-
-      for (var exercise in session.exercises) {
-        bool added = false;
-
-        for (var i = 0; i < exercises.length; i++) {
-          if (exercises[i]['title'] == exercise['title']) {
-            exercises[i]['reps'] = exercises[i]['reps'] + exercise['reps'];
-            exercises[i]['weights'] = exercises[i]['weights'] + exercise['weights'];
-            added = true;
-            break;
+      for (var doc in querySnapshot.docs) {
+        Session session = Session.fromJson(doc.data() as Map<String, dynamic>);
+        for (var exercise in session.exercises) {
+          String title = exercise['title'];
+          if (!exerciseMap.containsKey(title)) {
+            exerciseMap[title] = {...exercise, 'reps': 0, 'weights': 0};
           }
-        }
-
-        if (added == false) {
-          exercises.add(exercise);
+          exerciseMap[title]!['reps'] += exercise['reps'];
+          exerciseMap[title]!['weights'] += exercise['weights'];
         }
       }
-    }
 
-    return exercises;
+      return exerciseMap.values.toList();
+    } catch (e) {
+      print("Error getting exercises: $e");
+      return [];
+    }
   }
 
   Future<List<Map<String, dynamic>>> fetchExerciseData(String exerciseTitle) async {
     try {
       QuerySnapshot querySnapshot = await sessions.get();
-      List<Map<String, dynamic>> fetchedExercises = [];
-
-      for (var doc in querySnapshot.docs) {
-        List<dynamic> exercises = doc['exercises'];
-        for (var ex in exercises) {
-          if (ex['title'] == exerciseTitle) {
-            fetchedExercises.add({
-              'date': doc['date'],
-              'reps': ex['reps'],
-              'weights': ex['weights']
-            });
-          }
-        }
-      }
-
-      return fetchedExercises;
+      return querySnapshot.docs
+        .expand((doc) => (doc['exercises'] as List)
+          .where((ex) => ex['title'] == exerciseTitle)
+          .map((ex) => {
+            'date': doc['date'],
+            'reps': ex['reps'],
+            'weights': ex['weights']
+          }))
+        .toList();
     } catch (e) {
       print("Error fetching exercise data: $e");
       return [];
@@ -93,13 +78,9 @@ class SessionFirestore {
       Map<String, List<Map<String, dynamic>>> exerciseData = {};
 
       for (var doc in querySnapshot.docs) {
-        List<dynamic> exercises = doc['exercises'];
-        for (var ex in exercises) {
+        for (var ex in doc['exercises']) {
           String title = ex['title'];
-          if (!exerciseData.containsKey(title)) {
-            exerciseData[title] = [];
-          }
-          exerciseData[title]!.add({
+          exerciseData.putIfAbsent(title, () => []).add({
             'date': (doc['date'] as Timestamp).toDate().toIso8601String(),
             'reps': ex['reps'],
             'weights': ex['weights']
