@@ -25,17 +25,40 @@ class _ExercisesPageState extends State<ExercisesPage> {
   }
 
   void _showAddExerciseDialog() {
-    // Implement the logic to show a dialog for adding an exercise
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AddExerciseDialog(
           onAdd: (ExerciseInfo newExercise) {
-            setState(() {
-              // Add the new exercise to Firestore or the local list
-              exerciseFirestore.addExercise(newExercise);
-            });
+            exerciseFirestore.addExercise(newExercise);
           },
+        );
+      },
+    );
+  }
+
+  void _confirmDelete(BuildContext context, String docId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Delete Exercise"),
+          content: Text("Are you sure you want to delete this exercise?"),
+          actions: [
+            TextButton(
+              child: Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+            TextButton(
+              child: Text("Delete"),
+              onPressed: () {
+                exerciseFirestore.deleteExercise(docId);
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+          ],
         );
       },
     );
@@ -45,12 +68,11 @@ class _ExercisesPageState extends State<ExercisesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[200],
-      body: StreamBuilder<QuerySnapshot>(
+      body: StreamBuilder<List<DocumentSnapshot>>(
         stream: exerciseFirestore.getExercisesStream(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            List<DocumentSnapshot> exerciseList = snapshot.data!.docs;
-
+            List<DocumentSnapshot> exerciseList = snapshot.data!;
             return Column(
               children: [
                 Padding(
@@ -96,7 +118,13 @@ class _ExercisesPageState extends State<ExercisesPage> {
                           exercise.title,
                           style: const TextStyle(fontSize: 18),
                         ),
-                        subtitle: Text(exercise.primaryMuscles[0]),
+                        subtitle: Text(
+                          exercise.primaryMuscles.isNotEmpty ? exercise.primaryMuscles[0] : '',
+                        ),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete, color: Colors.grey[800]),
+                          onPressed: () => _confirmDelete(context, document.id),
+                        ),
                         tileColor: Colors.grey[200],
                         onTap: () {
                           _showExerciseInfo(context, exercise);

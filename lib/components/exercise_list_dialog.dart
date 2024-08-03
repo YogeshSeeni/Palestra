@@ -32,11 +32,11 @@ class ExerciseListDialog extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Flexible(
-                child: StreamBuilder<QuerySnapshot>(
+                child: StreamBuilder<List<DocumentSnapshot>>(
                   stream: exerciseFirestore.getExercisesStream(),
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
-                      List<DocumentSnapshot> exerciseList = snapshot.data!.docs;
+                      List<DocumentSnapshot> exerciseList = snapshot.data!;
         
                       if (exerciseList.isEmpty) {
                         return const Center(child: Text("No Exercises"));
@@ -46,14 +46,12 @@ class ExerciseListDialog extends StatelessWidget {
                         itemCount: exerciseList.length,
                         itemBuilder: (context, index) {
                           DocumentSnapshot document = exerciseList[index];
-                          String docID = document.id;
-                      
                           ExerciseInfo exerciseInfo = ExerciseInfo.fromJson(
                               document.data() as Map<String, dynamic>);
                       
                           return ListTile(
                             title: Text(exerciseInfo.title),
-                            subtitle: Text(exerciseInfo.primaryMuscles[0]),
+                            subtitle: Text(exerciseInfo.primaryMuscles.isNotEmpty ? exerciseInfo.primaryMuscles[0] : 'No primary muscle'),
                             onTap: () {
                               onExerciseAdded(exerciseInfo.title);
                               Navigator.of(context).pop();
