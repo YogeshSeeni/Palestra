@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:get/get.dart';
+import 'package:Palestra/pages/goals_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,11 +24,28 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     refreshUser();
+    checkTrainingGoals();
   }
 
-// text controller
-  final newWorkoutNameController = TextEditingController();
   final newSessionNameController = TextEditingController();
+
+ void checkTrainingGoals() async {
+  User? user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+    
+    Map<String, dynamic>? userData = userDoc.data() as Map<String, dynamic>?;
+    if (!userDoc.exists || userData == null || !userData.containsKey('fitnessProfile')) {
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => GoalsPage(isInitialSetup: true),
+      ));
+    }
+  }
+}
+  
 
   void createNewSession() {
     showDialog(
@@ -60,7 +78,9 @@ class _HomePageState extends State<HomePage> {
         await sessionFirestore?.addSession(newSession);
     Navigator.pop(context);
     clear();
-    goToSessionPage(newSession, sessionDoc!.id);
+    if (sessionDoc != null) {
+      goToSessionPage(newSession, sessionDoc.id);
+    }
   }
 
   void goToSessionPage(Session session, String sessionID) {
@@ -70,44 +90,7 @@ class _HomePageState extends State<HomePage> {
             builder: (context) => SessionPage(
                 session: session,
                 sessionID: sessionID,
-                sessionFirestore: sessionFirestore)));
-  }
-
-  // create a new workout
-  void createNewWorkout() {
-    showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-                title: const Text("Create new template"),
-                content: TextField(
-                  controller: newWorkoutNameController,
-                  decoration: const InputDecoration(
-                    hintText: 'Workout Name',
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black),
-                    ),
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.black),
-                    ),
-                  ),
-                ),
-                actions: [
-                  MaterialButton(
-                      onPressed: saveWorkout,
-                      child: const Text("save",
-                          style: TextStyle(color: Colors.black))),
-                  MaterialButton(
-                      onPressed: cancel,
-                      child: const Text("cancel",
-                          style: TextStyle(color: Colors.black)))
-                ]));
-  }
-
-  void saveWorkout() {
-    String newWorkoutName = newWorkoutNameController.text;
-
-    Navigator.pop(context);
-    clear();
+                sessionFirestore: sessionFirestore!)));
   }
 
   void cancel() {
@@ -116,7 +99,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void clear() {
-    newWorkoutNameController.clear();
+    newSessionNameController.clear();
   }
 
   void refreshUser() async {
@@ -137,6 +120,90 @@ class _HomePageState extends State<HomePage> {
     FirebaseAuth.instance.signOut();
   }
 
+  void renameSession(String sessionId, String currentTitle) {
+    TextEditingController renameController =
+        TextEditingController(text: currentTitle);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Rename Session"),
+        content: TextField(
+          controller: renameController,
+          decoration: const InputDecoration(
+            hintText: 'New Session Name',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel", style: TextStyle(color: Colors.black)),
+          ),
+          TextButton(
+            onPressed: () async {
+              String newTitle = renameController.text;
+              await sessionFirestore?.updateSessionTitle(sessionId, newTitle);
+              Navigator.pop(context);
+            },
+            child: const Text("Save", style: TextStyle(color: Colors.black)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void deleteSession(String sessionId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Session"),
+        content: const Text("Are you sure you want to delete this session?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel", style: TextStyle(color: Colors.black)),
+          ),
+          TextButton(
+            onPressed: () async {
+              await sessionFirestore?.deleteSession(sessionId);
+              Navigator.pop(context);
+            },
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void reuseSession(Session session) async {
+    Session newSession = Session.withTitle("${session.title} (Copy)");
+    // Copy exercises from the original session to the new session
+    for (var exercise in session.exercises) {
+      newSession.addExercise(exercise['title']);
+      for (int i = 0; i < exercise['reps'].length; i++) {
+        newSession.addReps(exercise['title'], exercise['reps'][i]);
+        newSession.addWeight(exercise['title'], exercise['weights'][i]);
+      }
+    }
+    DocumentReference<Object?>? sessionDoc =
+        await sessionFirestore?.addSession(newSession);
+    if (sessionDoc != null) {
+      goToSessionPage(newSession, sessionDoc.id);
+    }
+  }
+
+  String _getBestSet(List<dynamic> weights, List<dynamic> reps) {
+    if (weights.isEmpty || reps.isEmpty) return 'N/A';
+
+    int bestIndex = 0;
+    for (int i = 1; i < weights.length; i++) {
+      if (weights[i] > weights[bestIndex]) {
+        bestIndex = i;
+      }
+    }
+
+    return '${weights[bestIndex]} x ${reps[bestIndex]}';
+  }
+
   @override
   Widget build(BuildContext context) {
     BottomNavigationBarController controller =
@@ -152,12 +219,9 @@ class _HomePageState extends State<HomePage> {
         ],
         backgroundColor: Colors.grey[200],
       ),
-      backgroundColor:
-          Colors.grey[200], // Set the background color of the app to grey
+      backgroundColor: Colors.grey[200],
       body: Obx(() {
-        // Check which page is selected
         if (controller.index.value == 1) {
-          // If "Workout" page is selected, show the workout list
           return Column(
             children: [
               if (currentUser?.displayName != null)
@@ -177,8 +241,8 @@ class _HomePageState extends State<HomePage> {
                 child: ElevatedButton(
                   onPressed: createNewSession,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black, // Background color
-                    foregroundColor: Colors.white, // Text color
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 20),
                     textStyle: const TextStyle(
@@ -218,22 +282,55 @@ class _HomePageState extends State<HomePage> {
                         return ListView.builder(
                           itemCount: sessionsList.length,
                           itemBuilder: (context, index) {
-                            //Get Each Individual Session Doc
                             DocumentSnapshot document = sessionsList[index];
                             String docID = document.id;
-
-                            //Get Session from Doc
                             Session session = Session.fromJson(
                                 document.data() as Map<String, dynamic>);
 
-                            return ListTile(
-                              title: Text(session.title,
-                                  style: const TextStyle(fontSize: 18)),
-                              subtitle: Text(session.date.toString()),
-                              onTap: () => goToSessionPage(session, docID),
-                              trailing: const Icon(
-                                (Icons.arrow_forward_ios),
-                              ), 
+                            return Card(
+                              color: Colors.grey[400],
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 8, horizontal: 16),
+                              child: ExpansionTile(
+                                title: Text(session.title,
+                                    style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold)),
+                                subtitle: Text(
+                                  session.date.toString(),
+                                ),
+                                children: [
+                                  ...session.exercises
+                                      .map((exercise) => ListTile(
+                                            title: Text(
+                                                "${exercise['title']}: ${exercise['reps'].length} sets",
+                                                style: const TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                            subtitle: Text(
+                                              'Best set: ${_getBestSet(exercise['weights'], exercise['reps'])}',
+                                            ),
+                                          )),
+                                  ButtonBar(
+                                    alignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.edit),
+                                        onPressed: () =>
+                                            renameSession(docID, session.title),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.recycling),
+                                        onPressed: () => reuseSession(session),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete),
+                                        onPressed: () => deleteSession(docID),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             );
                           },
                         );
@@ -248,7 +345,6 @@ class _HomePageState extends State<HomePage> {
             ],
           );
         } else {
-          // Otherwise, show the selected page from the controller
           return controller.pages[controller.index.value];
         }
       }),

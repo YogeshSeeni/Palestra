@@ -3,7 +3,15 @@ import '../models/exercise.dart';
 
 class ExerciseInfoDialog extends StatelessWidget {
   final ExerciseInfo exercise;
-  const ExerciseInfoDialog({super.key, required this.exercise});
+  final bool isCustom;
+  final Function()? onDelete;
+
+  const ExerciseInfoDialog({
+    Key? key,
+    required this.exercise,
+    required this.isCustom,
+    this.onDelete,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -37,4 +45,3 @@ class ExerciseInfoDialog extends StatelessWidget {
     );
   }
 }
-

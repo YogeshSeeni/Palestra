@@ -6,7 +6,6 @@ import 'package:Palestra/models/exercise.dart';
 class ExerciseFirestore {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Getting the current user ID
   String? get userId {
     User? user = _auth.currentUser;
     return user?.uid;
@@ -25,7 +24,9 @@ class ExerciseFirestore {
   }
 
   Future<void> addExercise(ExerciseInfo exercise) {
-    return customExercises.add(exercise.toJson());
+    Map<String, dynamic> exerciseData = exercise.toJson();
+    exerciseData['isCustom'] = true;
+    return customExercises.add(exerciseData);
   }
 
   Future<void> deleteExercise(String docId) {
@@ -33,13 +34,28 @@ class ExerciseFirestore {
   }
 
   Stream<List<DocumentSnapshot>> getExercisesStream() {
-    final defaultExercises = FirebaseFirestore.instance.collection('exercises').orderBy('title').snapshots();
-    final userCustomExercises = customExercises.orderBy('title').snapshots();
+  final defaultExercises = FirebaseFirestore.instance.collection('exercises')
+      .orderBy('title')
+      .snapshots()
+      .map((snapshot) => snapshot.docs.map((doc) {
+            Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+            data['isCustom'] = false;
+            return doc;
+          }).toList());
 
-    return Rx.combineLatest2(defaultExercises, userCustomExercises, (QuerySnapshot defaultData, QuerySnapshot customData) {
-      // Combine the documents from both snapshots
-      final allDocuments = [...defaultData.docs, ...customData.docs];
+  final userCustomExercises = customExercises
+      .orderBy('title')
+      .snapshots()
+      .map((snapshot) => snapshot.docs.map((doc) {
+            Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+            data['isCustom'] = true;
+            return doc;
+          }).toList());
+
+  return Rx.combineLatest2(defaultExercises, userCustomExercises, 
+    (List<DocumentSnapshot> defaultData, List<DocumentSnapshot> customData) {
+      final allDocuments = [...defaultData, ...customData];
       return allDocuments;
     });
-  }
+}
 }

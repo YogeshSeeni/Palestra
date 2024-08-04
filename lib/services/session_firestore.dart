@@ -18,6 +18,12 @@ class SessionFirestore {
   Future<void> updateSession(Session session, String sessionID) => 
     sessions.doc(sessionID).update(session.toJson());
 
+  Future<void> updateSessionTitle(String sessionID, String newTitle) =>
+    sessions.doc(sessionID).update({'title': newTitle});
+
+  Future<void> deleteSession(String sessionID) =>
+    sessions.doc(sessionID).delete();
+
   Future<List<Map<String, dynamic>>> fetchUserSessions() async {
     try {
       QuerySnapshot querySnapshot = await sessions.get();

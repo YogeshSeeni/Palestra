@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:Palestra/components/exercise_info_dialog.dart';
 import 'package:Palestra/components/add_exercise_dialog.dart';
 import '../models/exercise.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ExercisesPage extends StatefulWidget {
   const ExercisesPage({super.key});
@@ -15,11 +16,46 @@ class ExercisesPage extends StatefulWidget {
 class _ExercisesPageState extends State<ExercisesPage> {
   final ExerciseFirestore exerciseFirestore = ExerciseFirestore();
 
-  void _showExerciseInfo(BuildContext context, ExerciseInfo exercise) {
+  @override
+  void initState() {
+    super.initState();
+    _ensureCustomExercisesInitialized();
+  }
+
+  Future<void> _ensureCustomExercisesInitialized() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await initializeCustomExercises(user.uid);
+    }
+  }
+
+  Future<void> initializeCustomExercises(String userId) async {
+    final firestore = FirebaseFirestore.instance;
+    final userDocRef = firestore.collection('users').doc(userId);
+    
+    // Check if the customExercises collection already exists
+    final customExercisesCollection = await userDocRef.collection('customExercises').get();
+    
+    if (customExercisesCollection.docs.isEmpty) {
+      // If it doesn't exist, create an empty document to initialize the collection
+      await userDocRef.collection('customExercises').add({
+        'initialized': true,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    }
+  }
+
+  void _showExerciseInfo(
+      BuildContext context, ExerciseInfo exercise, bool isCustom) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return ExerciseInfoDialog(exercise: exercise);
+        return ExerciseInfoDialog(
+          exercise: exercise,
+          isCustom: isCustom,
+          onDelete:
+              isCustom ? () => _confirmDelete(context, exercise.title) : null,
+        );
       },
     );
   }
@@ -106,12 +142,11 @@ class _ExercisesPageState extends State<ExercisesPage> {
                   child: ListView.builder(
                     itemCount: exerciseList.length,
                     itemBuilder: (context, index) {
-                      // Get each individual exercise doc
                       DocumentSnapshot document = exerciseList[index];
-
-                      // Get exercise from doc
-                      ExerciseInfo exercise = ExerciseInfo.fromJson(
-                          document.data() as Map<String, dynamic>);
+                      Map<String, dynamic> data =
+                          document.data() as Map<String, dynamic>;
+                      ExerciseInfo exercise = ExerciseInfo.fromJson(data);
+                      bool isCustom = data['isCustom'] ?? false;
 
                       return ListTile(
                         title: Text(
@@ -119,15 +154,21 @@ class _ExercisesPageState extends State<ExercisesPage> {
                           style: const TextStyle(fontSize: 18),
                         ),
                         subtitle: Text(
-                          exercise.primaryMuscles.isNotEmpty ? exercise.primaryMuscles[0] : '',
+                          exercise.primaryMuscles.isNotEmpty
+                              ? exercise.primaryMuscles[0]
+                              : '',
                         ),
-                        trailing: IconButton(
-                          icon: Icon(Icons.delete, color: Colors.grey[800]),
-                          onPressed: () => _confirmDelete(context, document.id),
-                        ),
+                        trailing: isCustom
+                            ? IconButton(
+                                icon:
+                                    Icon(Icons.delete, color: Colors.grey[800]),
+                                onPressed: () =>
+                                    _confirmDelete(context, document.id),
+                              )
+                            : null,
                         tileColor: Colors.grey[200],
                         onTap: () {
-                          _showExerciseInfo(context, exercise);
+                          _showExerciseInfo(context, exercise, isCustom);
                         },
                       );
                     },
