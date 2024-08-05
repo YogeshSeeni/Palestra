@@ -237,11 +237,7 @@ class _GoalsPageState extends State<GoalsPage> {
           }
         }, SetOptions(merge: true));
         
-        if (widget.isInitialSetup) {
-          Navigator.of(context).pushReplacementNamed('/home'); // Navigate to home page
-        } else {
-          Navigator.of(context).pop(); // Just pop the current page
-        }
+        Navigator.of(context).pop();
       } catch (e) {
         print('Error saving profile: $e');
         // You can choose to show an error message here if you want
