@@ -4,6 +4,7 @@ import 'package:Palestra/components/square_tile.dart';
 import 'package:Palestra/helper/helper_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class RegisterPage extends StatefulWidget {
   final void Function()? onTap;
@@ -29,54 +30,70 @@ class _RegisterPageState extends State<RegisterPage> {
 
   //Register Method
   void register() async {
-  // check if passwords don't match
-  if (passwordController.text != confirmController.text) {
-    // Display error message
-    displayMessage("Passwords Don't Match!!", context);
-    return;
+    // check if passwords don't match
+    if (passwordController.text != confirmController.text) {
+      // Display error message
+      displayMessage("Passwords Don't Match!!", context);
+      return;
+    }
+
+    isLoading.value = true;
+
+    try {
+      // create user
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+              email: emailController.text, password: passwordController.text);
+
+      // update display name
+      await userCredential.user?.updateDisplayName(usernameController.text);
+    } on FirebaseAuthException catch (e) {
+      // Display error message
+      displayMessage(e.message ?? 'An error occurred', context);
+    } catch (e) {
+      // Display error message
+      displayMessage('An unexpected error occurred', context);
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  isLoading.value = true;
+  void signInWithGoogle() async {
+    // Trigger the authentication flow
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
-  try {
-    // create user
-    UserCredential userCredential = await FirebaseAuth.instance
-        .createUserWithEmailAndPassword(
-            email: emailController.text, password: passwordController.text);
+    // Obtain the auth details from the request
+    final GoogleSignInAuthentication? googleAuth =
+        await googleUser?.authentication;
 
-    // update display name
-    await userCredential.user?.updateDisplayName(usernameController.text);
+    // Create a new credential
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth?.accessToken,
+      idToken: googleAuth?.idToken,
+    );
 
-  } on FirebaseAuthException catch (e) {
-    // Display error message
-    displayMessage(e.message ?? 'An error occurred', context);
-  } catch (e) {
-    // Display error message
-    displayMessage('An unexpected error occurred', context);
-  } finally {
-    isLoading.value = false;
+    // Once signed in, return the UserCredential
+    await FirebaseAuth.instance.signInWithCredential(credential);
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[300],
       body: SafeArea(
-        child: Stack(
-          children: [SingleChildScrollView(
+        child: Stack(children: [
+          SingleChildScrollView(
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(height: 25),
-          
+
                   // logo
                   Image.asset('lib/images/logo.png', height: 150),
-          
+
                   const SizedBox(height: 10),
-          
+
                   // Email text field
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -85,9 +102,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         hintText: 'Email',
                         obscureText: false),
                   ),
-          
+
                   const SizedBox(height: 10),
-          
+
                   // Username text field
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -96,9 +113,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         hintText: 'Name',
                         obscureText: false),
                   ),
-          
+
                   const SizedBox(height: 10),
-          
+
                   // Password text field
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -107,9 +124,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         hintText: 'Password',
                         obscureText: true),
                   ),
-          
+
                   const SizedBox(height: 10),
-          
+
                   // Confirm password text field
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -118,17 +135,17 @@ class _RegisterPageState extends State<RegisterPage> {
                         hintText: 'Confirm Password',
                         obscureText: true),
                   ),
-          
+
                   const SizedBox(height: 25),
-          
+
                   // Register button
                   MyButton(
                     buttonText: "Register",
                     onTap: register,
                   ),
-          
+
                   const SizedBox(height: 25),
-          
+
                   // Or continue with
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -154,25 +171,17 @@ class _RegisterPageState extends State<RegisterPage> {
                       ],
                     ),
                   ),
-          
+
                   const SizedBox(height: 25),
-          
+
                   // Google + apple sign in button
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // google button
-                      SquareTile(imagePath: 'lib/images/google.png'),
-          
-                      SizedBox(width: 10),
-          
-                      // apple buttom
-                      SquareTile(imagePath: 'lib/images/apple.png')
-                    ],
+                  GestureDetector(
+                    onTap: signInWithGoogle,
+                    child: const SquareTile(imagePath: 'lib/images/google.png')
                   ),
-          
+
                   const SizedBox(height: 25),
-          
+
                   // Not a user? Register now
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -196,12 +205,14 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
           ),
-          ValueListenableBuilder<bool>(valueListenable: isLoading, builder: (context, value, child) {
-            if (value) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            return const SizedBox.shrink();
-          })
+          ValueListenableBuilder<bool>(
+              valueListenable: isLoading,
+              builder: (context, value, child) {
+                if (value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                return const SizedBox.shrink();
+              })
         ]),
       ),
     );

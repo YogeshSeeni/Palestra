@@ -4,6 +4,7 @@ import 'package:Palestra/components/square_tile.dart';
 import 'package:Palestra/helper/helper_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginPage extends StatefulWidget {
   final void Function()? onTap;
@@ -35,6 +36,24 @@ class _LoginPageState extends State<LoginPage> {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  void signInWithGoogle() async {
+    // Trigger the authentication flow
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+    // Obtain the auth details from the request
+    final GoogleSignInAuthentication? googleAuth =
+        await googleUser?.authentication;
+
+    // Create a new credential
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth?.accessToken,
+      idToken: googleAuth?.idToken,
+    );
+
+    // Once signed in, return the UserCredential
+    await FirebaseAuth.instance.signInWithCredential(credential);
   }
 
   @override
@@ -127,17 +146,9 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 25),
           
                   // Google + apple sign in button
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // google button
-                      SquareTile(imagePath: 'lib/images/google.png'),
-          
-                      SizedBox(width: 10),
-          
-                      // apple buttom
-                      SquareTile(imagePath: 'lib/images/apple.png')
-                    ],
+                  GestureDetector(
+                    onTap: signInWithGoogle,
+                    child: SquareTile(imagePath: 'lib/images/google.png')
                   ),
           
                   const SizedBox(height: 25),

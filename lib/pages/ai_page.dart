@@ -207,28 +207,32 @@ class _AiPageState extends State<AiPage> {
   }
 
   Widget _buildActionButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        ElevatedButton.icon(
-          icon: const Icon(Icons.fitness_center),
-          label: const Text("Create Workout Plan"),
-          onPressed: _createWorkoutPlan,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          ElevatedButton.icon(
+            icon: const Icon(Icons.fitness_center),
+            label: const Text("Create Workout Plan"),
+            onPressed: _createWorkoutPlan,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+            ),
           ),
-        ),
-        ElevatedButton.icon(
-          icon: const Icon(Icons.lightbulb_outline),
-          label: const Text("Get Exercise Tip"),
-          onPressed: _getTip,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
+          SizedBox(width: 10,),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.lightbulb_outline),
+            label: const Text("Get Exercise Tip"),
+            onPressed: _getTip,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
