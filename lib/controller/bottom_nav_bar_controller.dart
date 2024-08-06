@@ -10,7 +10,7 @@ class BottomNavigationBarController extends GetxController {
   var pages = [
     const AnalyzePage(),
     const HomePage(),
-    ExercisesPage(),
+    const ExercisesPage(),
     const AiPage(),
   ];
 }

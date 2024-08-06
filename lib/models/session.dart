@@ -4,23 +4,30 @@ class Session {
   final String title;
   final DateTime date;
   List<Map<String, dynamic>> _exercises;
+  bool isTemplate;
 
-  Session._({required this.title, required this.date, List<Map<String, dynamic>>? exercises})
-      : _exercises = exercises ?? [];
+  Session({
+    required this.title,
+    required this.date,
+    List<Map<String, dynamic>>? exercises,
+    this.isTemplate = false,
+  }) : _exercises = exercises ?? [];
 
   List<Map<String, dynamic>> get exercises => List.unmodifiable(_exercises);
 
   Map<String, dynamic> toJson() => {
         'title': title,
-        'date': date.toIso8601String(),
+        'date': Timestamp.fromDate(date), // Always write as Timestamp
         'exercises': _exercises,
+        'isTemplate': isTemplate,
       };
 
   factory Session.fromJson(Map<String, dynamic> data) {
-    return Session._(
+    return Session(
       title: data['title'] as String,
       date: _parseDate(data['date']),
       exercises: List<Map<String, dynamic>>.from(data['exercises'] as List),
+      isTemplate: data['isTemplate'] as bool? ?? false,
     );
   }
 
@@ -28,14 +35,29 @@ class Session {
     if (date is Timestamp) {
       return date.toDate();
     } else if (date is String) {
-      return DateTime.parse(date);
+      try {
+        return DateTime.parse(date);
+      } catch (e) {
+        // If standard parsing fails, try a custom format
+        try {
+          return DateTime.parse(date.replaceAll(' ', 'T'));
+        } catch (e) {
+          print("Failed to parse date string: $date");
+          return DateTime.now();
+        }
+      }
+    } else if (date is int) {
+      return DateTime.fromMillisecondsSinceEpoch(date);
+    } else if (date is DateTime) {
+      return date;
     } else {
-      throw FormatException('Invalid date format');
+      print("Unexpected date format: $date");
+      return DateTime.now();
     }
   }
 
   factory Session.withTitle(String title) {
-    return Session._(title: title, date: DateTime.now());
+    return Session(title: title, date: DateTime.now());
   }
 
   void addExercise(String exerciseName) {

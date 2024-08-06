@@ -78,17 +78,17 @@ class _ExercisesPageState extends State<ExercisesPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Delete Exercise"),
-          content: Text("Are you sure you want to delete this exercise?"),
+          title: const Text("Delete Exercise"),
+          content: const Text("Are you sure you want to delete this exercise?"),
           actions: [
             TextButton(
-              child: Text("Cancel"),
+              child: const Text("Cancel"),
               onPressed: () {
                 Navigator.of(context).pop(); // Close the dialog
               },
             ),
             TextButton(
-              child: Text("Delete"),
+              child: const Text("Delete"),
               onPressed: () {
                 exerciseFirestore.deleteExercise(docId);
                 Navigator.of(context).pop(); // Close the dialog

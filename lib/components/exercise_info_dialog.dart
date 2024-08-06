@@ -7,11 +7,11 @@ class ExerciseInfoDialog extends StatelessWidget {
   final Function()? onDelete;
 
   const ExerciseInfoDialog({
-    Key? key,
+    super.key,
     required this.exercise,
     required this.isCustom,
     this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

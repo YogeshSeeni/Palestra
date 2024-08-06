@@ -38,7 +38,7 @@ class ExerciseFirestore {
       .orderBy('title')
       .snapshots()
       .map((snapshot) => snapshot.docs.map((doc) {
-            Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+            Map<String, dynamic> data = doc.data();
             data['isCustom'] = false;
             return doc;
           }).toList());

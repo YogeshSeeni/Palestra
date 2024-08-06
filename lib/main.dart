@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
             borderSide: BorderSide(color: Colors.black),
           ),
         ),
-        dialogTheme: DialogTheme(
+        dialogTheme: const DialogTheme(
           titleTextStyle: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
           contentTextStyle: TextStyle(color: Colors.black, fontSize: 16),
         ),
@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const AuthPage(),
-        '/goals': (context) => GoalsPage(),
+        '/goals': (context) => const GoalsPage(),
       },
     );
   }

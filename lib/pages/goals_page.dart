@@ -19,6 +19,11 @@ class _GoalsPageState extends State<GoalsPage> {
   int _selectedInches = 0;
   final TextEditingController _weightController = TextEditingController();
   int _selectedYear = DateTime.now().year;
+  int _workoutDaysPerWeek = 3;
+  int _workoutTimePerDay = 60;
+  String _gymAccess = 'Full';
+  String _specialCondition = 'None';
+  final TextEditingController _sportController = TextEditingController();
 
   final List<String> _goalOptions = [
     'General Fitness',
@@ -30,9 +35,11 @@ class _GoalsPageState extends State<GoalsPage> {
     'Sport Specific',
     'Functional Fitness',
     'Rehabilitation',
-    'Senior Fitness'
+    'Senior Fitness',
+    'Weight Management'
   ];
   List<String> _selectedGoals = [];
+  List<String> _selectedBodyParts = [];
 
   @override
   void initState() {
@@ -54,6 +61,12 @@ class _GoalsPageState extends State<GoalsPage> {
               _weightController.text = (data['fitnessProfile']['weight'] ?? '').toString();
               _selectedYear = data['fitnessProfile']['yearStarted'] ?? DateTime.now().year;
               _selectedGoals = List<String>.from(data['fitnessProfile']['fitnessGoals'] ?? []);
+              _workoutDaysPerWeek = data['fitnessProfile']['workoutDaysPerWeek'] ?? 3;
+              _workoutTimePerDay = data['fitnessProfile']['workoutTimePerDay'] ?? 60;
+              _gymAccess = data['fitnessProfile']['gymAccess'] ?? 'Full';
+              _specialCondition = data['fitnessProfile']['specialCondition'] ?? 'None';
+              _sportController.text = data['fitnessProfile']['sport'] ?? '';
+              _selectedBodyParts = List<String>.from(data['fitnessProfile']['bodyPartsToTrain'] ?? []);
             });
           }
         }
@@ -91,6 +104,20 @@ class _GoalsPageState extends State<GoalsPage> {
               Text('Experience', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               SizedBox(height: 10),
               _buildYearStartedDropdown(),
+              SizedBox(height: 20),
+
+              Text('Workout Plan', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              SizedBox(height: 10),
+              _buildWorkoutDaysDropdown(),
+              SizedBox(height: 10),
+              _buildWorkoutTimeDropdown(),
+              SizedBox(height: 10),
+              _buildGymAccessDropdown(),
+              SizedBox(height: 20),
+
+              Text('Special Conditions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              SizedBox(height: 10),
+              _buildSpecialConditionDropdown(),
               SizedBox(height: 20),
 
               Text('Fitness Goals', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
@@ -201,9 +228,128 @@ class _GoalsPageState extends State<GoalsPage> {
     );
   }
 
+  Widget _buildWorkoutDaysDropdown() {
+    return DropdownButtonFormField<int>(
+      value: _workoutDaysPerWeek,
+      items: List.generate(7, (index) => index + 1).map((int value) {
+        return DropdownMenuItem<int>(
+          value: value,
+          child: Text('$value days'),
+        );
+      }).toList(),
+      onChanged: (int? newValue) {
+        setState(() {
+          _workoutDaysPerWeek = newValue!;
+        });
+      },
+      decoration: InputDecoration(
+        labelText: 'Workout Days per Week',
+        border: OutlineInputBorder(),
+        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+      ),
+    );
+  }
+
+  Widget _buildWorkoutTimeDropdown() {
+    return DropdownButtonFormField<int>(
+      value: _workoutTimePerDay,
+      items: [30, 45, 60, 90, 120].map((int value) {
+        return DropdownMenuItem<int>(
+          value: value,
+          child: Text('$value minutes'),
+        );
+      }).toList(),
+      onChanged: (int? newValue) {
+        setState(() {
+          _workoutTimePerDay = newValue!;
+        });
+      },
+      decoration: InputDecoration(
+        labelText: 'Workout Time per Day',
+        border: OutlineInputBorder(),
+        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+      ),
+    );
+  }
+
+  Widget _buildGymAccessDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _gymAccess,
+      items: ['Full', 'Limited', 'Home Equipment', 'No Equipment'].map((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+      onChanged: (String? newValue) {
+        setState(() {
+          _gymAccess = newValue!;
+        });
+      },
+      decoration: InputDecoration(
+        labelText: 'Gym Access',
+        border: OutlineInputBorder(),
+        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+      ),
+    );
+  }
+
+  Widget _buildSpecialConditionDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _specialCondition,
+      items: ['None', 'Pregnancy', 'Disability', 'Amputee', 'Other'].map((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+      onChanged: (String? newValue) {
+        setState(() {
+          _specialCondition = newValue!;
+        });
+      },
+      decoration: InputDecoration(
+        labelText: 'Special Condition',
+        border: OutlineInputBorder(),
+        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+      ),
+    );
+  }
+
   Widget _buildGoalsMultiSelect() {
     return Column(
       children: _goalOptions.map((goal) {
+        if (goal == 'Sport Specific') {
+          return Column(
+            children: [
+              CheckboxListTile(
+                title: Text(goal),
+                value: _selectedGoals.contains(goal),
+                onChanged: (bool? value) {
+                  setState(() {
+                    if (value == true) {
+                      _selectedGoals.add(goal);
+                    } else {
+                      _selectedGoals.remove(goal);
+                      _sportController.clear();
+                    }
+                  });
+                },
+              ),
+              if (_selectedGoals.contains(goal))
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: TextField(
+                    controller: _sportController,
+                    decoration: InputDecoration(
+                      labelText: 'Specify Sport',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        }
         return CheckboxListTile(
           title: Text(goal),
           value: _selectedGoals.contains(goal),
@@ -234,13 +380,19 @@ class _GoalsPageState extends State<GoalsPage> {
             'weight': int.tryParse(_weightController.text) ?? 0,
             'yearStarted': _selectedYear,
             'fitnessGoals': _selectedGoals,
+            'workoutDaysPerWeek': _workoutDaysPerWeek,
+            'workoutTimePerDay': _workoutTimePerDay,
+            'gymAccess': _gymAccess,
+            'specialCondition': _specialCondition,
+            'sport': _sportController.text,
+            'bodyPartsToTrain': _selectedBodyParts,
           }
         }, SetOptions(merge: true));
         
         if (widget.isInitialSetup) {
-          Navigator.of(context).pushReplacementNamed('/home'); // Navigate to home page
+          Navigator.of(context).pushReplacementNamed('/home');
         } else {
-          Navigator.of(context).pop(); // Just pop the current page
+          Navigator.of(context).pop();
         }
       } catch (e) {
         print('Error saving profile: $e');

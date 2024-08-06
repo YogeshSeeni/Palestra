@@ -1,23 +1,21 @@
-import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:Palestra/models/session.dart';
-import 'package:Palestra/pages/session_page.dart';
 import 'package:Palestra/services/session_firestore.dart';
-import 'package:Palestra/pages/goals_page.dart';
+import 'package:Palestra/services/gemini_service.dart';
+import 'package:Palestra/pages/session_page.dart';
+
 
 class AiPage extends StatefulWidget {
-  const AiPage({Key? key}) : super(key: key);
+  const AiPage({super.key});
 
   @override
   State<AiPage> createState() => _AiPageState();
 }
 
 class _AiPageState extends State<AiPage> {
-  final Gemini _gemini = Gemini.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final List<ChatMessage> _messages = [];
@@ -26,7 +24,7 @@ class _AiPageState extends State<AiPage> {
   Map<String, dynamic> _userProfile = {};
   String _recommendation = '';
   late SessionFirestore _sessionFirestore;
-  String _exerciseDataString = '';
+  late GeminiService _geminiService;
 
   final ChatUser _currentUser = ChatUser(id: "0", firstName: "User");
   final ChatUser _geminiUser = ChatUser(id: "1", firstName: "Palestra AI");
@@ -34,18 +32,19 @@ class _AiPageState extends State<AiPage> {
   @override
   void initState() {
     super.initState();
-    _initializeSessionFirestore();
+    _initializeServices();
     _fetchExercises();
     _loadUserProfile();
     _fetchExerciseData();
     _greetUser();
   }
 
-  void _initializeSessionFirestore() {
-    final user = FirebaseAuth.instance.currentUser;
+  void _initializeServices() {
+    final user = _auth.currentUser;
     if (user != null) {
       _sessionFirestore = SessionFirestore(userID: user.uid);
     }
+    _geminiService = GeminiService();
   }
 
   Future<void> _fetchExercises() async {
@@ -60,25 +59,8 @@ class _AiPageState extends State<AiPage> {
                 })
             .toList();
       });
-      print("Fetched exercises: $_availableExercises");
     } catch (e) {
       print("Error fetching exercises: $e");
-    }
-  }
-
-  Future<void> _fetchExerciseData() async {
-    if (!mounted) return;
-    try {
-      Map<String, List<Map<String, dynamic>>> fetchedData =
-          await _sessionFirestore.fetchAllExercisesForChatbot();
-      if (mounted) {
-        setState(() {
-          _exerciseDataString = json.encode(fetchedData);
-        });
-      }
-      await _generateRecommendation(fetchedData);
-    } catch (e) {
-      print("Error fetching exercise data: $e");
     }
   }
 
@@ -92,255 +74,158 @@ class _AiPageState extends State<AiPage> {
     }
   }
 
-  void _greetUser() {
-    _addMessage(_geminiUser, "Hello! I'm your AI fitness coach. How can I help you with your workout today? You can ask me to create a workout plan or for advice on specific exercises.");
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[200],
-      body: Column(
-        children: [
-          _buildHeader(),
-          if (_recommendation.isNotEmpty) _buildRecommendationWidget(),
-          Expanded(child: _buildChatUI()),
-          if (_isLoading) const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: CircularProgressIndicator(color: Colors.black),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: _buildActionButtons(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Padding(
-      padding: EdgeInsets.all(20.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Coach',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
-          ),
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => GoalsPage()),
-              ).then((_) => _loadUserProfile());
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRecommendationWidget() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Recommendation",
-            style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold, color: Colors.black),
-          ),
-          const SizedBox(height: 4.0),
-          Row(
-            children: [
-              const Icon(Icons.info_outline, color: Colors.black),
-              const SizedBox(width: 8.0),
-              Expanded(
-                child: Text(
-                  _recommendation,
-                  style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500, color: Colors.black),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChatUI() {
-    return DashChat(
-      currentUser: _currentUser,
-      onSend: _handleUserMessage,
-      messages: _messages,
-      inputOptions: InputOptions(
-        inputTextStyle: const TextStyle(fontSize: 16.0, color: Colors.black),
-        inputDecoration: InputDecoration(
-          hintText: "Ask about exercises or request a workout plan...",
-          hintStyle: TextStyle(color: Colors.grey[600]),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20.0),
-            borderSide: BorderSide(color: Colors.black),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20.0),
-            borderSide: BorderSide(color: Colors.black, width: 2.0),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20.0),
-            borderSide: BorderSide(color: Colors.black),
-          ),
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        ),
-      ),
-      messageOptions: const MessageOptions(
-        currentUserTextColor: Colors.white,
-        currentUserContainerColor: Colors.black,
-        containerColor: Colors.white,
-        textColor: Colors.black,
-      ),
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        ElevatedButton.icon(
-          icon: const Icon(Icons.fitness_center),
-          label: const Text("Create Workout Plan"),
-          onPressed: _createWorkoutPlan,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
-          ),
-        ),
-        ElevatedButton.icon(
-          icon: const Icon(Icons.lightbulb_outline),
-          label: const Text("Get Exercise Tip"),
-          onPressed: _getTip,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _handleUserMessage(ChatMessage message) async {
-    setState(() => _messages.insert(0, message));
-    await _sendMessage(message.text);
-  }
-
-  Future<void> _sendMessage(String text) async {
+  Future<void> _fetchExerciseData() async {
     if (!mounted) return;
-    setState(() => _isLoading = true);
-
-    final String prompt = """
-Provide a concise response to the user's fitness query. Focus on clear, actionable advice.
-Ensure proper formatting and correct spacing in your response. Avoid typos and formatting errors.
-
-User's query: $text
-
-Instructions:
-1. Keep the response under 100 words.
-2. Use proper spacing, especially around numbers and after punctuation.
-3. Avoid technical jargon unless specifically asked.
-4. If suggesting exercises, stick to common ones or those likely in a typical gym.
-""";
-
     try {
-      String response = await _getGeminiResponse(prompt);
-      _addMessage(_geminiUser, response);
+      Map<String, List<Map<String, dynamic>>> fetchedData = await _sessionFirestore.fetchAllExercisesForChatbot();
+      if (mounted) {
+        await _generateRecommendation(fetchedData);
+      }
     } catch (e) {
-      print("Error processing message: $e");
-      _addMessage(_geminiUser, "I apologize, but I couldn't process your request at the moment. Could you please try rephrasing your question?");
-    }
-
-    if (mounted) {
-      setState(() => _isLoading = false);
+      print("Error fetching exercise data: $e");
     }
   }
 
-  void _addMessage(ChatUser user, String text) {
-    if (mounted) {
-      setState(() {
-        _messages.insert(0, ChatMessage(
-          user: user,
-          createdAt: DateTime.now(),
-          text: text,
-        ));
-      });
+  Future<void> _generateRecommendation(Map<String, List<Map<String, dynamic>>> exerciseData) async {
+    try {
+      String generatedRecommendation = await _geminiService.generateRecommendation(exerciseData);
+      if (mounted) {
+        setState(() {
+          _recommendation = generatedRecommendation.isNotEmpty
+              ? generatedRecommendation
+              : "I couldn't generate a recommendation at this time. How about we discuss your fitness goals?";
+        });
+      }
+    } catch (e) {
+      print("Error generating recommendation: $e");
+      if (mounted) {
+        setState(() {
+          _recommendation =
+              "Let's focus on your fitness journey. What would you like to work on today?";
+        });
+      }
     }
   }
 
-  Future<void> _createWorkoutPlan() async {
-    String bodyPart = await _showInputDialog("Body part to focus on");
-    if (bodyPart.isEmpty) return;
-
-    String preferences = await _showInputDialog("Any preferences?");
-    if (preferences.isEmpty) return;
-
-    _handleWorkoutPlanCreation(bodyPart, preferences);
+  void _greetUser() {
+    _addMessage(_geminiUser,
+        "Hello! I'm your AI fitness coach. How can I help you with your workout today? You can ask me to create a workout plan or for advice on specific exercises.");
   }
 
-  Future<String> _showInputDialog(String hintText) async {
-    String input = '';
-    await showDialog(
+  void _createWorkout() {
+    showDialog(
       context: context,
       builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Create Workout',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Divider(),
+                ListTile(
+                  title: const Text('Single Workout'),
+                  subtitle: const Text('Generate a one-time workout routine'),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    _createSingleWorkout();
+                  },
+                ),
+                ListTile(
+                  title: const Text('Workout Regimen'),
+                  subtitle: const Text('Create a weekly workout plan'),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    _createWorkoutRegimen();
+                  },
+                ),
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
+                    'Tip: Fitness experts recommend following a regimen for at least 4-6 weeks to see noticeable progress.',
+                    style:
+                        TextStyle(fontStyle: FontStyle.italic, fontSize: 12),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+    void _createSingleWorkout() async {
+    String? userInput = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        String inputText = '';
         return AlertDialog(
-          title: Text('Create Workout Plan'),
+          title: const Text('What kind of workout are you looking for?'),
           content: TextField(
-            decoration: InputDecoration(hintText: hintText),
             onChanged: (value) {
-              input = value;
+              inputText = value;
             },
+            decoration: const InputDecoration(hintText: "E.g., Quick upper body workout"),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('OK'),
+              child: const Text('OK'),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(inputText);
               },
             ),
           ],
         );
       },
     );
-    return input;
-  }
 
-  Future<void> _handleWorkoutPlanCreation(String bodyPart, String preferences) async {
-    if (!mounted) return;
+    if (userInput == null || userInput.isEmpty) {
+      return;
+    }
+
     setState(() => _isLoading = true);
 
-    final String exerciseList = _availableExercises.map((e) => e['title']).join(", ");
-    final String prompt = _generateWorkoutPrompt(bodyPart, preferences, exerciseList);
-
     try {
-      String workoutPlanText = await _getGeminiResponse(prompt);
-      print("Gemini response:\n$workoutPlanText");
+      String workoutPlan = await _geminiService.generateSingleWorkout(
+        _userProfile['fitnessProfile'],
+        _availableExercises,
+        userInput,
+      );
+      List<Map<String, dynamic>> exercises = _parseWorkoutPlan(workoutPlan);
 
-      List<Map<String, dynamic>> exercises = _parseWorkoutPlan(workoutPlanText);
-      
       if (exercises.isEmpty) {
-        throw FormatException('No valid exercises generated');
+        throw const FormatException('No valid exercises generated');
       }
 
-      String sessionName = "Workout for $bodyPart";
-      
+      String sessionName = userInput;
+
+      // Create template
+      Session templateSession = Session.withTitle(sessionName);
+      templateSession.isTemplate = true;
+      for (var exercise in exercises) {
+        templateSession.addExercise(exercise['title']);
+        for (int i = 0; i < exercise['sets']; i++) {
+          templateSession.addReps(exercise['title'], 0);
+          templateSession.addWeight(exercise['title'], 0);
+        }
+      }
+      await _sessionFirestore.addSession(templateSession);
+
+      // Create actual session
       Session newSession = Session.withTitle(sessionName);
       for (var exercise in exercises) {
         newSession.addExercise(exercise['title']);
@@ -350,98 +235,28 @@ Instructions:
         }
       }
 
-      DocumentReference<Object?>? sessionDoc = await _createFirebaseSession(newSession);
+      DocumentReference<Object?>? sessionDoc = await _sessionFirestore.addSession(newSession);
 
-      if (sessionDoc != null) {
-        if (mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => SessionPage(
-                session: newSession,
-                sessionID: sessionDoc.id,
-                sessionFirestore: SessionFirestore(userID: _auth.currentUser!.uid),
-              ),
-            ),
-          );
-        }
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SessionPage(
+            session: newSession,
+            sessionID: sessionDoc.id,
+            sessionFirestore: _sessionFirestore,
+          ),
+        ),
+      );
 
-        _addMessage(_geminiUser, "I've created a workout plan focused on $bodyPart, tailored to your goals and profile. You can now edit and customize it as you like.");
-      }
-    } catch (e) {
+      _addMessage(_geminiUser,
+          "I've created a workout based on your request: '$userInput'. You can now start your session, and I've also saved a template for future use. You can find the template in the Templates section on the home page. Feel free to customize it as needed!");
+        } catch (e) {
       print("Error processing workout plan: $e");
-      _addMessage(_geminiUser, "I'm sorry, I encountered an error while creating your workout plan. Could you try simplifying your request or specifying fewer preferences?");
+      _addMessage(_geminiUser,
+          "I'm sorry, I encountered an error while creating your workout. Could you try simplifying your request or being more specific?");
     }
 
-    if (mounted) {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  String _generateWorkoutPrompt(String bodyPart, String preferences, String exerciseList) {
-    String goals = _userProfile['fitnessProfile']['fitnessGoals'].join(', ');
-    int feet = _userProfile['fitnessProfile']['height']['feet'];
-    int inches = _userProfile['fitnessProfile']['height']['inches'];
-    int weight = _userProfile['fitnessProfile']['weight'];
-    int yearStarted = _userProfile['fitnessProfile']['yearStarted'];
-
-    return """
-Create a personalized workout plan based on the following user profile and preferences:
-Height: $feet'$inches"
-Weight: $weight lbs
-Training since: $yearStarted
-Goals: $goals
-Body part focus: $bodyPart
-Preferences: $preferences
-
-Available exercises: $exerciseList
-
-Instructions:
-1. Suggest 4-6 exercises from the available list, focusing on $bodyPart and considering the user's goals and preferences.
-2. For each exercise, suggest the number of sets (3-5).
-3. Format your response as a simple list, with each line containing:
-   Exercise name | Number of sets
-
-Example output:
-Bench Press | 3
-Squats | 4
-...
-
-Only include exercises from the provided 'Available exercises' list.
-Ensure the exercises and parameters are appropriate for the user's goals, experience level, and preferences.
-""";
-  }
-
-  Future<DocumentReference<Object?>?> _createFirebaseSession(Session session) async {
-    try {
-      final user = _auth.currentUser;
-      if (user != null) {
-        return await _firestore.collection('users').doc(user.uid).collection('sessions').add(session.toJson());
-      }
-    } catch (e) {
-      print("Error creating Firebase session: $e");
-    }
-    return null;
-  }
-
-  Map<String, dynamic>? _fuzzyMatchExercise(String exerciseTitle) {
-    String cleanTitle = exerciseTitle.replaceFirst(RegExp(r'^[-\d.]\s*'), '').trim();
-    String lowerTitle = cleanTitle.toLowerCase();
-    
-    for (var exercise in _availableExercises) {
-      if (exercise['title'].toLowerCase() == lowerTitle) {
-        return exercise;
-      }
-    }
-
-    for (var exercise in _availableExercises) {
-      if (exercise['title'].toLowerCase().contains(lowerTitle) || 
-          lowerTitle.contains(exercise['title'].toLowerCase())) {
-        return exercise;
-      }
-    }
-
-    return null;
+    setState(() => _isLoading = false);
   }
 
   List<Map<String, dynamic>> _parseWorkoutPlan(String planText) {
@@ -482,47 +297,194 @@ Ensure the exercises and parameters are appropriate for the user's goals, experi
     return exercises;
   }
 
-  Future<String> _getGeminiResponse(String prompt) async {
-    String response = '';
-    await for (var event in _gemini.streamGenerateContent(prompt)) {
-      response += event.content?.parts?.map((part) => part.text).join(" ") ?? '';
+  Map<String, dynamic>? _fuzzyMatchExercise(String exerciseTitle) {
+    String cleanTitle = exerciseTitle.replaceFirst(RegExp(r'^[-\d.]\s*'), '').trim();
+    String lowerTitle = cleanTitle.toLowerCase();
+    
+    for (var exercise in _availableExercises) {
+      if (exercise['title'].toLowerCase() == lowerTitle) {
+        return exercise;
+      }
     }
-    return response.trim();
+
+    for (var exercise in _availableExercises) {
+      if (exercise['title'].toLowerCase().contains(lowerTitle) || 
+          lowerTitle.contains(exercise['title'].toLowerCase())) {
+        return exercise;
+      }
+    }
+
+    return null;
   }
 
-  Future<void> _generateRecommendation(Map<String, List<Map<String, dynamic>>> fetchedData) async {
-    if (!mounted) return;
-    const String prompt = """
-Generate a concise recommendation (30 words or less) for the user's next workout session based on their exercise data.
-Be motivational and focus on progress or variety. Avoid suggesting specific exercises.
+  void _createWorkoutRegimen() async {
+  setState(() => _isLoading = true);
 
-Exercise Data:
-""";
+  try {
+    List<Map<String, dynamic>> regimenPlan = await _geminiService.generateWorkoutRegimen(
+        _userProfile['fitnessProfile'], _availableExercises);
+
+    for (var template in regimenPlan) {
+      Session newSession = Session(
+        title: "${template['name']} Template",
+        date: DateTime.now(),
+        exercises: (template['exercises'] as List<dynamic>).map((e) => {
+          'title': e['name'],
+          'sets': e['sets'],
+          'reps': List.filled(e['sets'], 0),
+          'weights': List.filled(e['sets'], 0),
+        }).toList(),
+        isTemplate: true,
+      );
+      await _sessionFirestore.addSession(newSession);
+    }
+
+    _addMessage(_geminiUser,
+        "I've created a personalized weekly workout regimen based on your profile and preferences. You can find these workout templates in the Templates section on the home page. Feel free to adjust them as needed. Remember, consistency is key - try to follow this regimen for at least 4-6 weeks to see significant progress!");
+  } catch (e) {
+    print("Error processing workout regimen: $e");
+    _addMessage(_geminiUser,
+        "I'm sorry, I encountered an error while creating your workout regimen. Could you try again later?");
+  }
+
+  setState(() => _isLoading = false);
+}
+
+  void _addMessage(ChatUser user, String text) {
+    if (mounted) {
+      setState(() {
+        _messages.insert(
+          0,
+          ChatMessage(
+            user: user,
+            createdAt: DateTime.now(),
+            text: text,
+          ),
+        );
+      });
+    }
+  }
+
+  void _handleUserMessage(ChatMessage message) async {
+    setState(() => _messages.insert(0, message));
+    setState(() => _isLoading = true);
 
     try {
-      String generatedRecommendation = await _getGeminiResponse(prompt + json.encode(fetchedData));
-      if (mounted) {
-        setState(() {
-          _recommendation = generatedRecommendation.isNotEmpty
-              ? generatedRecommendation
-              : "I couldn't generate a recommendation at this time. How about we discuss your fitness goals?";
-        });
-      }
+      String response =
+          await _geminiService.sendMessage(message.text, _messages);
+      _addMessage(_geminiUser, response);
     } catch (e) {
-      print("Error generating recommendation: $e");
-      if (mounted) {
-        setState(() {
-          _recommendation = "Let's focus on your fitness journey. What would you like to work on today?";
-        });
-      }
+      print("Error processing message: $e");
+      _addMessage(_geminiUser,
+          "I apologize, but I couldn't process your request at the moment. Could you please try rephrasing your question?");
     }
+
+    setState(() => _isLoading = false);
   }
 
-  void _getTip() {
-    _handleUserMessage(ChatMessage(
-      user: _currentUser,
-      text: "Give me a quick workout tip!",
-      createdAt: DateTime.now(),
-    ));
+  void _getTip() async {
+    setState(() => _isLoading = true);
+
+    try {
+      String tip = await _geminiService.getTip();
+      _addMessage(_geminiUser, "Here's a quick workout tip: $tip");
+    } catch (e) {
+      print("Error getting tip: $e");
+      _addMessage(_geminiUser,
+          "I'm sorry, I couldn't generate a tip right now. Let me know if you have any specific questions!");
+    }
+
+    setState(() => _isLoading = false);
+  }
+
+  Widget _buildRecommendationWidget() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Card(
+        color: Colors.white,
+        shadowColor: Colors.black,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              const Icon(Icons.info_outline, color: Colors.black),
+              const SizedBox(width: 8.0),
+              Expanded(
+                child: Text(
+                  _recommendation,
+                  style: const TextStyle(fontSize: 16, color: Colors.black),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return const Padding(
+      padding: EdgeInsets.all(20.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Coach',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[200],
+      body: Column(
+        children: [
+          _buildHeader(),
+          if (_recommendation.isNotEmpty) _buildRecommendationWidget(),
+          Expanded(
+            child: DashChat(
+              currentUser: _currentUser,
+              onSend: _handleUserMessage,
+              messages: _messages,
+            ),
+          ),
+          if (_isLoading)
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: CircularProgressIndicator(color: Colors.black),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.add),
+                  label: const Text('Create Workout'),
+                  onPressed: _createWorkout,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.lightbulb_outline),
+                  label: const Text('Get Tip'),
+                  onPressed: _getTip,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

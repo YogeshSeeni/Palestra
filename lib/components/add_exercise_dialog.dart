@@ -4,7 +4,7 @@ import '../models/exercise.dart';
 class AddExerciseDialog extends StatelessWidget {
   final Function(ExerciseInfo) onAdd;
 
-  const AddExerciseDialog({required this.onAdd, Key? key}) : super(key: key);
+  const AddExerciseDialog({required this.onAdd, super.key});
 
   @override
   Widget build(BuildContext context) {
