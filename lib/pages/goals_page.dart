@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class GoalsPage extends StatefulWidget {
   final bool isInitialSetup;
 
-  const GoalsPage({Key? key, this.isInitialSetup = false}) : super(key: key);
+  const GoalsPage({super.key, this.isInitialSetup = false});
 
   @override
   _GoalsPageState createState() => _GoalsPageState();
@@ -16,7 +16,7 @@ class _GoalsPageState extends State<GoalsPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   int _selectedFeet = 5;
-  int _selectedInches = 0;
+  int _selectedInches = 7;
   final TextEditingController _weightController = TextEditingController();
   int _selectedYear = DateTime.now().year;
   int _workoutDaysPerWeek = 3;
@@ -83,57 +83,57 @@ class _GoalsPageState extends State<GoalsPage> {
       child: Scaffold(
         backgroundColor: Colors.grey[200],
         appBar: AppBar(
-          title: Text('Set Your Fitness Profile'),
+          title: const Text('Set Your Fitness Profile'),
           backgroundColor: Colors.grey[200],
           foregroundColor: Colors.black,
           elevation: 0,
           automaticallyImplyLeading: !widget.isInitialSetup,
         ),
         body: SingleChildScrollView(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Biometrics', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              SizedBox(height: 10),
+              const Text('Biometrics', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
               _buildHeightDropdowns(),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               _buildWeightTextField(),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-              Text('Experience', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              SizedBox(height: 10),
+              const Text('Experience', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
               _buildYearStartedDropdown(),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-              Text('Workout Plan', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              SizedBox(height: 10),
+              const Text('Workout Plan', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
               _buildWorkoutDaysDropdown(),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               _buildWorkoutTimeDropdown(),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               _buildGymAccessDropdown(),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-              Text('Special Conditions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              SizedBox(height: 10),
+              const Text('Special Conditions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
               _buildSpecialConditionDropdown(),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-              Text('Fitness Goals', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              SizedBox(height: 10),
+              const Text('Fitness Goals', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
               _buildGoalsMultiSelect(),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
               Center(
                 child: ElevatedButton(
-                  child: Text('Save Profile'),
                   onPressed: _saveProfile,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                   ),
+                  child: const Text('Save Profile'),
                 ),
               ),
             ],
@@ -160,14 +160,14 @@ class _GoalsPageState extends State<GoalsPage> {
                 _selectedFeet = newValue!;
               });
             },
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'Feet',
               border: OutlineInputBorder(),
               contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
             ),
           ),
         ),
-        SizedBox(width: 10),
+        const SizedBox(width: 10),
         Expanded(
           child: DropdownButtonFormField<int>(
             value: _selectedInches,
@@ -182,7 +182,7 @@ class _GoalsPageState extends State<GoalsPage> {
                 _selectedInches = newValue!;
               });
             },
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'Inches',
               border: OutlineInputBorder(),
               contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
@@ -197,7 +197,7 @@ class _GoalsPageState extends State<GoalsPage> {
     return TextField(
       controller: _weightController,
       keyboardType: TextInputType.number,
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         labelText: 'Weight (lbs)',
         border: OutlineInputBorder(),
         contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
@@ -220,7 +220,7 @@ class _GoalsPageState extends State<GoalsPage> {
           _selectedYear = newValue!;
         });
       },
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         labelText: 'Year Started Training',
         border: OutlineInputBorder(),
         contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
@@ -242,7 +242,7 @@ class _GoalsPageState extends State<GoalsPage> {
           _workoutDaysPerWeek = newValue!;
         });
       },
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         labelText: 'Workout Days per Week',
         border: OutlineInputBorder(),
         contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
@@ -264,7 +264,7 @@ class _GoalsPageState extends State<GoalsPage> {
           _workoutTimePerDay = newValue!;
         });
       },
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         labelText: 'Workout Time per Day',
         border: OutlineInputBorder(),
         contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
@@ -286,7 +286,7 @@ class _GoalsPageState extends State<GoalsPage> {
           _gymAccess = newValue!;
         });
       },
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         labelText: 'Gym Access',
         border: OutlineInputBorder(),
         contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
@@ -308,7 +308,7 @@ class _GoalsPageState extends State<GoalsPage> {
           _specialCondition = newValue!;
         });
       },
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         labelText: 'Special Condition',
         border: OutlineInputBorder(),
         contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
@@ -341,7 +341,7 @@ class _GoalsPageState extends State<GoalsPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: TextField(
                     controller: _sportController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Specify Sport',
                       border: OutlineInputBorder(),
                     ),
@@ -389,11 +389,7 @@ class _GoalsPageState extends State<GoalsPage> {
           }
         }, SetOptions(merge: true));
         
-        if (widget.isInitialSetup) {
-          Navigator.of(context).pushReplacementNamed('/home');
-        } else {
-          Navigator.of(context).pop();
-        }
+        Navigator.of(context).pop();
       } catch (e) {
         print('Error saving profile: $e');
         // You can choose to show an error message here if you want

@@ -11,12 +11,12 @@ class SessionPage extends StatefulWidget {
   final bool isTemplate;
 
   const SessionPage({
-    Key? key,
+    super.key,
     required this.session,
     required this.sessionID,
     required this.sessionFirestore,
     this.isTemplate = false,
-  }) : super(key: key);
+  });
 
   @override
   State<SessionPage> createState() => _SessionPageState();
@@ -58,7 +58,7 @@ class _SessionPageState extends State<SessionPage> {
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
         title: Text(
-          widget.isTemplate ? "${widget.session.title}" : widget.session.title,
+          widget.isTemplate ? widget.session.title : widget.session.title,
           style: const TextStyle(fontSize: 24),
         ),
         backgroundColor: Colors.grey[200],

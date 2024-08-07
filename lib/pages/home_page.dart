@@ -29,24 +29,23 @@ class _HomePageState extends State<HomePage> {
 
   final newSessionNameController = TextEditingController();
 
-  void checkTrainingGoals() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-
-      Map<String, dynamic>? userData = userDoc.data() as Map<String, dynamic>?;
-      if (!userDoc.exists ||
-          userData == null ||
-          !userData.containsKey('fitnessProfile')) {
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => const GoalsPage(isInitialSetup: true),
-        ));
-      }
+ void checkTrainingGoals() async {
+  User? user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+    
+    Map<String, dynamic>? userData = userDoc.data() as Map<String, dynamic>?;
+    if (!userDoc.exists || userData == null || !userData.containsKey('fitnessProfile')) {
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => const GoalsPage(isInitialSetup: true),
+      ));
     }
   }
+}
+  
 
   void createNewSession() {
     showDialog(
@@ -447,6 +446,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
         backgroundColor: Colors.grey[200],
+        scrolledUnderElevation: 0.0
       ),
       backgroundColor: Colors.grey[200],
       body: Obx(() {
