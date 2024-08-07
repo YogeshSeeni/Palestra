@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:dash_chat_2/dash_chat_2.dart';
+import 'package:Palestra/util/parse_workout.dart'; 
 
 class GeminiService {
   final Gemini _gemini = Gemini.instance;
@@ -75,9 +76,9 @@ Only include exercises from the provided 'Available exercises' list.
   }
 
   Future<List<Map<String, dynamic>>> generateWorkoutRegimen(
-    Map<String, dynamic> profile,
-    List<Map<String, dynamic>> availableExercises) async {
-  String prompt = """
+      Map<String, dynamic> profile,
+      List<Map<String, dynamic>> availableExercises) async {
+    String prompt = """
 Create a personalized weekly workout regimen overview based on the following user profile:
 Height: ${profile['height']?['feet'] ?? 'N/A'}'${profile['height']?['inches'] ?? 'N/A'}"
 Weight: ${profile['weight'] ?? 'N/A'} lbs
@@ -90,101 +91,51 @@ Gym access: ${profile['gymAccess'] ?? 'N/A'}
 
 Instructions:
 1. Create a ${profile['workoutDaysPerWeek'] ?? 3}-day workout plan overview for the week.
-2. For each day, provide a name and focus (e.g., "Day 1 - Upper Body", "Day 2 - Lower Body", etc.).
-3. Ensure the regimen is balanced and appropriate for the user's goals, experience level, and preferences.
-4. Format your response as a simple list, with each day on a new line.
+2. For each day, provide a name and focus (e.g., "Upper Body", "Lower Body", etc.). Do NOT list rest days no matter the user. 
+3. For users who train 5 or more days a week, ensure all muscles are targeted and generate creative workouts (e.g. Beach Muscles (Chest, Biceps, Abs)).
+4. Ensure the regimen is balanced and appropriate for the user's goals, experience level, and preferences.
+5. Format your response as a simple list, with each day on a new line. Order the workouts in a reasonable manner. 
 
 Example output:
-Day 1 - Upper Body
-Day 2 - Lower Body
-Day 3 - Full Body
+Upper Body
+Lower Body
+Full Body
+
+Do NOT list dashes, numbers, or days. ONLY LIST WITH NEW LINES. For example, do not output the following:
+- Upper Body
+- Lower Body
+- Full Body
+
+We want the user to choose the order.
 
 Only provide the overview, not the specific exercises.
 """;
 
-  String regimenOverview = await getGeminiResponse(prompt);
-  List<String> workoutDays = regimenOverview.split('\n')
-      .where((line) => line.trim().isNotEmpty)
-      .toList();
-  
-  List<Map<String, dynamic>> fullRegimen = [];
-  for (String day in workoutDays) {
-    String workoutPlan = await generateDayWorkout(profile, availableExercises, day);
-    List<Map<String, dynamic>> exercises = parseWorkoutPlan(workoutPlan);
-    fullRegimen.add({
-      "name": day,
-      "exercises": exercises,
-    });
+    String regimenOverview = await getGeminiResponse(prompt);
+    List<String> workoutDays = regimenOverview
+        .split('\n')
+        .where((line) => line.trim().isNotEmpty)
+        .toList();
+
+    List<Map<String, dynamic>> fullRegimen = [];
+    for (String day in workoutDays) {
+      String workoutPlan =
+          await generateDayWorkout(profile, availableExercises, day);
+      List<Map<String, dynamic>> exercises =
+          parseWorkoutPlan(workoutPlan, availableExercises);
+      fullRegimen.add({
+        "name": day,
+        "exercises": exercises,
+      });
+    }
+
+    return fullRegimen;
   }
 
-  return fullRegimen;
-}
-
-Future<String> generateDayWorkout(
-    Map<String, dynamic> profile,
-    List<Map<String, dynamic>> availableExercises,
-    String dayFocus) async {
-  return await generateSingleWorkout(profile, availableExercises, "Workout for $dayFocus");
-}
-
-  List<Map<String, dynamic>> parseWorkoutPlan(String planText) {
-    List<Map<String, dynamic>> exercises = [];
-    List<String> lines = planText.split('\n');
-    
-    for (String line in lines) {
-      String cleanLine = line.replaceFirst(RegExp(r'^[-•\d.]\s*'), '').trim();
-      List<String> parts = cleanLine.split('|').map((part) => part.trim()).toList();
-      if (parts.length == 2) {
-        String exerciseTitle = parts[0];
-        int? sets = int.tryParse(parts[1]);
-        
-        if (sets != null && sets > 0) {
-          exercises.add({
-            "name": exerciseTitle,
-            "sets": sets,
-          });
-        }
-      }
-    }
-    
-    return exercises;
-  }
-
-  List<Map<String, dynamic>> parseRegimenPlan(String regimenPlan) {
-    List<Map<String, dynamic>> workouts = [];
-    List<String> days = regimenPlan.split('\n\n');
-    
-    for (String day in days) {
-      List<String> lines = day.split('\n');
-      if (lines.isNotEmpty) {
-        String workoutName = lines[0].trim();
-        List<Map<String, dynamic>> exercises = [];
-        
-        for (int i = 1; i < lines.length; i++) {
-          List<String> parts = lines[i].split('|').map((part) => part.trim()).toList();
-          if (parts.length == 2) {
-            String exerciseTitle = parts[0];
-            int? sets = int.tryParse(parts[1]);
-            
-            if (sets != null && sets > 0) {
-              exercises.add({
-                "name": exerciseTitle,
-                "sets": sets,
-              });
-            }
-          }
-        }
-        
-        if (exercises.isNotEmpty) {
-          workouts.add({
-            "name": workoutName,
-            "exercises": exercises,
-          });
-        }
-      }
-    }
-    
-    return workouts;
+  Future<String> generateDayWorkout(Map<String, dynamic> profile,
+      List<Map<String, dynamic>> availableExercises, String dayFocus) async {
+    return await generateSingleWorkout(
+        profile, availableExercises, "Workout for $dayFocus");
   }
 
   Future<String> generateRecommendation(

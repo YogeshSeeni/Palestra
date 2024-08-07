@@ -6,7 +6,7 @@ import 'package:Palestra/models/session.dart';
 import 'package:Palestra/services/session_firestore.dart';
 import 'package:Palestra/services/gemini_service.dart';
 import 'package:Palestra/pages/session_page.dart';
-
+import 'package:Palestra/util/parse_workout.dart';  // Updated import
 
 class AiPage extends StatefulWidget {
   const AiPage({super.key});
@@ -162,7 +162,7 @@ class _AiPageState extends State<AiPage> {
     );
   }
 
-    void _createSingleWorkout() async {
+  void _createSingleWorkout() async {
     String? userInput = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
@@ -205,7 +205,7 @@ class _AiPageState extends State<AiPage> {
         _availableExercises,
         userInput,
       );
-      List<Map<String, dynamic>> exercises = _parseWorkoutPlan(workoutPlan);
+      List<Map<String, dynamic>> exercises = parseWorkoutPlan(workoutPlan, _availableExercises);
 
       if (exercises.isEmpty) {
         throw const FormatException('No valid exercises generated');
@@ -250,7 +250,7 @@ class _AiPageState extends State<AiPage> {
 
       _addMessage(_geminiUser,
           "I've created a workout based on your request: '$userInput'. You can now start your session, and I've also saved a template for future use. You can find the template in the Templates section on the home page. Feel free to customize it as needed!");
-        } catch (e) {
+    } catch (e) {
       print("Error processing workout plan: $e");
       _addMessage(_geminiUser,
           "I'm sorry, I encountered an error while creating your workout. Could you try simplifying your request or being more specific?");
@@ -259,96 +259,38 @@ class _AiPageState extends State<AiPage> {
     setState(() => _isLoading = false);
   }
 
-  List<Map<String, dynamic>> _parseWorkoutPlan(String planText) {
-    List<Map<String, dynamic>> exercises = [];
-    List<String> lines = planText.split('\n');
-    
-    print("Parsing workout plan:");
-    for (String line in lines) {
-      print("Processing line: $line");
-      String cleanLine = line.replaceFirst(RegExp(r'^[-•\d.]\s*'), '').trim();
-      List<String> parts = cleanLine.split('|').map((part) => part.trim()).toList();
-      if (parts.length == 2) {
-        String exerciseTitle = parts[0];
-        int? sets = int.tryParse(parts[1]);
-        
-        print("Exercise: $exerciseTitle, Sets: $sets");
-        
-        if (sets != null && sets > 0) {
-          Map<String, dynamic>? matchedExercise = _fuzzyMatchExercise(exerciseTitle);
-          if (matchedExercise != null) {
-            exercises.add({
-              "title": matchedExercise['title'],
-              "sets": sets,
-            });
-            print("Added exercise: ${matchedExercise['title']} with $sets sets");
-          } else {
-            print("Skipped exercise: $exerciseTitle (not found in available exercises)");
-          }
-        } else {
-          print("Skipped exercise: $exerciseTitle (invalid number of sets)");
-        }
-      } else {
-        print("Skipped line: invalid format");
-      }
-    }
-    
-    print("Parsed exercises: $exercises");
-    return exercises;
-  }
-
-  Map<String, dynamic>? _fuzzyMatchExercise(String exerciseTitle) {
-    String cleanTitle = exerciseTitle.replaceFirst(RegExp(r'^[-\d.]\s*'), '').trim();
-    String lowerTitle = cleanTitle.toLowerCase();
-    
-    for (var exercise in _availableExercises) {
-      if (exercise['title'].toLowerCase() == lowerTitle) {
-        return exercise;
-      }
-    }
-
-    for (var exercise in _availableExercises) {
-      if (exercise['title'].toLowerCase().contains(lowerTitle) || 
-          lowerTitle.contains(exercise['title'].toLowerCase())) {
-        return exercise;
-      }
-    }
-
-    return null;
-  }
-
   void _createWorkoutRegimen() async {
-  setState(() => _isLoading = true);
+    setState(() => _isLoading = true);
 
-  try {
-    List<Map<String, dynamic>> regimenPlan = await _geminiService.generateWorkoutRegimen(
-        _userProfile['fitnessProfile'], _availableExercises);
+    try {
+      List<Map<String, dynamic>> regimenPlan = await _geminiService.generateWorkoutRegimen(
+          _userProfile['fitnessProfile'], _availableExercises);
 
-    for (var template in regimenPlan) {
-      Session newSession = Session(
-        title: "${template['name']} Template",
-        date: DateTime.now(),
-        exercises: (template['exercises'] as List<dynamic>).map((e) => {
-          'title': e['name'],
-          'sets': e['sets'],
-          'reps': List.filled(e['sets'], 0),
-          'weights': List.filled(e['sets'], 0),
-        }).toList(),
-        isTemplate: true,
-      );
-      await _sessionFirestore.addSession(newSession);
+      for (var template in regimenPlan) {
+        Session newSession = Session(
+          title: "${template['name']}",
+          date: DateTime.now(),
+          exercises: (template['exercises'] as List<dynamic>).map((e) => {
+            'title': e['title'],
+            'sets': e['sets'],
+            'reps': List.filled(e['sets'], 0),
+            'weights': List.filled(e['sets'], 0),
+          }).toList(),
+          isTemplate: true,
+        );
+        await _sessionFirestore.addSession(newSession);
+      }
+
+      _addMessage(_geminiUser,
+          "I've created a personalized weekly workout regimen based on your profile and preferences. You can find these workout templates in the Templates section on the home page. Feel free to adjust them as needed. Remember, consistency is key - try to follow this regimen for at least 4-6 weeks to see significant progress!");
+    } catch (e) {
+      print("Error processing workout regimen: $e");
+      _addMessage(_geminiUser,
+          "I'm sorry, I encountered an error while creating your workout regimen. Could you try again later?");
     }
 
-    _addMessage(_geminiUser,
-        "I've created a personalized weekly workout regimen based on your profile and preferences. You can find these workout templates in the Templates section on the home page. Feel free to adjust them as needed. Remember, consistency is key - try to follow this regimen for at least 4-6 weeks to see significant progress!");
-  } catch (e) {
-    print("Error processing workout regimen: $e");
-    _addMessage(_geminiUser,
-        "I'm sorry, I encountered an error while creating your workout regimen. Could you try again later?");
+    setState(() => _isLoading = false);
   }
-
-  setState(() => _isLoading = false);
-}
 
   void _addMessage(ChatUser user, String text) {
     if (mounted) {
