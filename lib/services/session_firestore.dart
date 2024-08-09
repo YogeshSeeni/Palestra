@@ -56,12 +56,31 @@ class SessionFirestore {
           exerciseMap[title]!['weights'] += exercise['weights'];
         }
       }
-
+      print(exerciseMap.values.toList());
       return exerciseMap.values.toList();
     } catch (e) {
-      print("Error getting exercises: $e");
       return [];
     }
+  }
+
+  // Get every single exercise performed by user for analysis 
+  Future<List<String>> fetchUniqueExercises() async {
+    Set<String> exercises = {};
+
+    try {
+      QuerySnapshot querySnapshot = await sessions.get();
+      
+      for (var doc in querySnapshot.docs) {
+        Session session = Session.fromJson(doc.data() as Map<String, dynamic>);
+        for (var exercise in session.exercises) {
+          exercises.add(exercise['title']);
+        }
+      } 
+    } catch (e) {
+      print("Error fetching unique exercises: $e");
+    }
+    print(exercises);
+    return exercises.toList();
   }
 
   Future<List<Map<String, dynamic>>> fetchExerciseData(String exerciseTitle) async {

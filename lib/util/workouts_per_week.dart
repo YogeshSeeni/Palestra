@@ -6,9 +6,7 @@ import 'package:intl/intl.dart';
 import 'dart:math' as math;
 
 class WorkoutsPerWeekCard extends StatefulWidget {
-  final VoidCallback onRemove;
-
-  const WorkoutsPerWeekCard({super.key, required this.onRemove});
+  const WorkoutsPerWeekCard({super.key});
 
   @override
   _WorkoutsPerWeekCardState createState() => _WorkoutsPerWeekCardState();
@@ -80,10 +78,6 @@ class _WorkoutsPerWeekCardState extends State<WorkoutsPerWeekCard> {
                           onPressed: () {
                             _showTargetInputDialog(context);
                           },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: widget.onRemove,
                         ),
                       ],
                     ),
