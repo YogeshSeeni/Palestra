@@ -39,30 +39,6 @@ class SessionFirestore {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getExercises() async {
-    try {
-      QuerySnapshot querySnapshot =
-          await sessions.orderBy('date', descending: false).get();
-      Map<String, Map<String, dynamic>> exerciseMap = {};
-
-      for (var doc in querySnapshot.docs) {
-        Session session = Session.fromJson(doc.data() as Map<String, dynamic>);
-        for (var exercise in session.exercises) {
-          String title = exercise['title'];
-          if (!exerciseMap.containsKey(title)) {
-            exerciseMap[title] = {...exercise, 'reps': 0, 'weights': 0};
-          }
-          exerciseMap[title]!['reps'] += exercise['reps'];
-          exerciseMap[title]!['weights'] += exercise['weights'];
-        }
-      }
-      print(exerciseMap.values.toList());
-      return exerciseMap.values.toList();
-    } catch (e) {
-      return [];
-    }
-  }
-
   // Get every single exercise performed by user for analysis 
   Future<List<String>> fetchUniqueExercises() async {
     Set<String> exercises = {};
@@ -81,6 +57,32 @@ class SessionFirestore {
     }
     print(exercises);
     return exercises.toList();
+  }
+
+  // Get Exercise Data for analyzsis
+  Future<Map<String, dynamic>> getExercise(String exerciseName) async {
+    try {
+      QuerySnapshot querySnapshot =
+          await sessions.orderBy('date', descending: false).get();
+      Map<String, dynamic> exerciseData = {'reps': [], 'weights': []};
+
+      for (var doc in querySnapshot.docs) {
+        Session session = Session.fromJson(doc.data() as Map<String, dynamic>);
+        for (var exercise in session.exercises) {
+          String title = exercise['title'];
+
+          if (title == exerciseName) {
+            exerciseData['reps'] = exerciseData['reps'] + exercise['reps'];
+            exerciseData['weights'] = exerciseData['weights'] + exercise['weights'];
+          }
+        }
+      }
+
+      print(exerciseData);
+      return exerciseData;
+    } catch (e) {
+      return {};
+    }
   }
 
   Future<List<Map<String, dynamic>>> fetchExerciseData(String exerciseTitle) async {
