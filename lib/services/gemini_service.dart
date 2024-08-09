@@ -12,6 +12,8 @@ class GeminiService {
       response +=
           event.content?.parts?.map((part) => part.text).join(" ") ?? '';
     }
+    response = response.replaceAll("**","");
+    response = response.replaceAll("* ", "• ");
     return response.trim();
   }
 
@@ -167,4 +169,15 @@ Workout tip:
 
     return await getGeminiResponse(prompt);
   }
+
+  Future<String> exerciseTip(String exerciseName, Map data) async {
+    String prompt = """
+Provide tips for the $exerciseName exercise. The following is the data for the exercise that the user has performed:
+$data
+    """;
+
+    return await getGeminiResponse(prompt);
+  }
+
+  
 }

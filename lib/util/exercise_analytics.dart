@@ -9,9 +9,8 @@ import 'dart:math' as math;
 class ExerciseAnalyticsCard extends StatefulWidget {
   final String exercise;
   final String metric;
-  final VoidCallback onRemove;
 
-  const ExerciseAnalyticsCard({super.key, required this.exercise, required this.metric, required this.onRemove});
+  const ExerciseAnalyticsCard({super.key, required this.exercise, required this.metric});
 
   @override
   _ExerciseAnalyticsCardState createState() => _ExerciseAnalyticsCardState();
@@ -269,10 +268,6 @@ class _ExerciseAnalyticsCardState extends State<ExerciseAnalyticsCard> {
                       onPressed: () {
                         _showTargetInputDialog(context);
                       },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: widget.onRemove,
                     ),
                   ],
                 ),

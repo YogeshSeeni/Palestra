@@ -1,4 +1,6 @@
+import 'package:Palestra/services/gemini_service.dart';
 import 'package:Palestra/services/session_firestore.dart';
+import 'package:Palestra/util/exercise_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -13,12 +15,15 @@ class AnalyzeExercisePage extends StatefulWidget {
 
 class _AnalyzeExercisePageState extends State<AnalyzeExercisePage> {
   late SessionFirestore sessionFirestore;
+  late GeminiService geminiService;
+  late String advice = "";
   Map<String, dynamic> exerciseData = {};
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    geminiService = GeminiService();
     getExerciseData();
   }
 
@@ -27,7 +32,10 @@ class _AnalyzeExercisePageState extends State<AnalyzeExercisePage> {
     if (user != null) {
       sessionFirestore = SessionFirestore(userID: user.uid);
       exerciseData = await sessionFirestore.getExercise(widget.exerciseName);
+      advice = await geminiService.exerciseTip(widget.exerciseName, exerciseData);
+
       setState(() {
+        advice = advice;
         isLoading = false;
       });
     } else {
@@ -139,6 +147,7 @@ class _AnalyzeExercisePageState extends State<AnalyzeExercisePage> {
     double averageWeight = totalWeight / numberOfSets;
     int maxReps = exercise['reps'].reduce((a, b) => a > b ? a : b);
     int maxWeight = exercise['weights'].reduce((a, b) => a > b ? a : b);
+    double estimated1RM = maxWeight * (1 + maxReps / 30.0);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -152,6 +161,7 @@ class _AnalyzeExercisePageState extends State<AnalyzeExercisePage> {
           Text('Average Weight per Set: ${averageWeight.toStringAsFixed(2)} lb', style: TextStyle(fontSize: 16)),
           Text('Max Reps in a Single Set: $maxReps', style: TextStyle(fontSize: 16)),
           Text('Max Weight in a Single Set: $maxWeight lb', style: TextStyle(fontSize: 16)),
+          Text('Estimated 1 Rep Max: $estimated1RM lb', style: TextStyle(fontSize: 16)),
         ],
       ),
     );
@@ -173,6 +183,17 @@ class _AnalyzeExercisePageState extends State<AnalyzeExercisePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Text(
+                    'Personalized Tips by Palestra AI',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    advice
+                  ),
+                  SizedBox(height: 8),
                   Text(
                     'Reps over Time',
                     style: TextStyle(
@@ -231,10 +252,18 @@ class _AnalyzeExercisePageState extends State<AnalyzeExercisePage> {
                     ),
                   ),
                   SizedBox(height: 24),
+                  Text(
+                    'General Statistics',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   Align(
                     alignment: Alignment.centerLeft,
                     child: _buildStats(exerciseData),
                   ),
+                  SizedBox(height: 8),
                 ],
               ),
             ),
