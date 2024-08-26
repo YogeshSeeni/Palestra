@@ -29,59 +29,48 @@ class _AnalyzePageState extends State<AnalyzePage> {
       currentUser = FirebaseAuth.instance.currentUser;
       sessionFirestore = SessionFirestore(userID: currentUser!.uid);
 
-      // Fetch unique exercises
       setState(() {
         uniqueExercisesFuture = sessionFirestore!.fetchUniqueExercises();
       });
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[200],
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text(
-              "Analyze",
-              style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-            ),
-          ),
-          WorkoutsPerWeekCard(),
-          Expanded(
+  void _showExerciseSelectionDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Select an Exercise'),
+          content: SizedBox(
+            width: double.maxFinite,
             child: FutureBuilder<List<String>>(
               future: uniqueExercisesFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(child: Text('No exercises found'));
+                  return const Center(child: Text('No exercises found'));
                 } else {
                   List<String> uniqueExercises = snapshot.data!;
                   return ListView.builder(
+                    shrinkWrap: true,
                     itemCount: uniqueExercises.length,
                     itemBuilder: (context, index) {
                       return ListTile(
                         title: Text(uniqueExercises[index]),
-                        trailing: IconButton(
-                          icon: Icon(Icons.arrow_forward),
-                          onPressed: () {
-                            // Navigate to the ExerciseDetailPage with the exercise name
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AnalyzeExercisePage(
-                                  exerciseName: uniqueExercises[index],
-                                ),
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AnalyzeExercisePage(
+                                exerciseName: uniqueExercises[index],
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          );
+                        },
                       );
                     },
                   );
@@ -89,7 +78,44 @@ class _AnalyzePageState extends State<AnalyzePage> {
               },
             ),
           ),
-        ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[200],
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Analyze",
+              style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            const WorkoutsPerWeekCard(),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey[300],
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: _showExerciseSelectionDialog,
+              child: const Text(
+                'Perform an AI-powered analysis on an exercise',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

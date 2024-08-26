@@ -6,7 +6,7 @@ import 'package:Palestra/models/session.dart';
 import 'package:Palestra/services/session_firestore.dart';
 import 'package:Palestra/services/gemini_service.dart';
 import 'package:Palestra/pages/session_page.dart';
-import 'package:Palestra/util/parse_workout.dart';  // Updated import
+import 'package:Palestra/util/parse_workout.dart'; 
 
 class AiPage extends StatefulWidget {
   const AiPage({super.key});
@@ -39,6 +39,7 @@ class _AiPageState extends State<AiPage> {
     _greetUser();
   }
 
+  // Initialize Firestore and Gemini services
   void _initializeServices() {
     final user = _auth.currentUser;
     if (user != null) {
@@ -47,9 +48,11 @@ class _AiPageState extends State<AiPage> {
     _geminiService = GeminiService();
   }
 
+  // Fetches exercises and their attributes (title, technique, primary muscles, secondary muscles) from exercise library 
   Future<void> _fetchExercises() async {
     try {
-      QuerySnapshot querySnapshot = await _firestore.collection('exercises').get();
+      QuerySnapshot querySnapshot =
+          await _firestore.collection('exercises').get();
       setState(() {
         _availableExercises = querySnapshot.docs
             .map((doc) => {
@@ -63,21 +66,25 @@ class _AiPageState extends State<AiPage> {
       print("Error fetching exercises: $e");
     }
   }
-
+  
+  // Load user profile that provides user's biometrics, experience, etc.
   Future<void> _loadUserProfile() async {
     User? user = _auth.currentUser;
     if (user != null) {
-      DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
+      DocumentSnapshot userDoc =
+          await _firestore.collection('users').doc(user.uid).get();
       setState(() {
         _userProfile = userDoc.data() as Map<String, dynamic>;
       });
     }
   }
 
+  // Fetch exercise
   Future<void> _fetchExerciseData() async {
     if (!mounted) return;
     try {
-      Map<String, List<Map<String, dynamic>>> fetchedData = await _sessionFirestore.fetchAllExercisesForChatbot();
+      Map<String, List<Map<String, dynamic>>> fetchedData =
+          await _sessionFirestore.fetchAllExercisesForChatbot();
       if (mounted) {
         await _generateRecommendation(fetchedData);
       }
@@ -86,9 +93,11 @@ class _AiPageState extends State<AiPage> {
     }
   }
 
-  Future<void> _generateRecommendation(Map<String, List<Map<String, dynamic>>> exerciseData) async {
+  Future<void> _generateRecommendation(
+      Map<String, List<Map<String, dynamic>>> exerciseData) async {
     try {
-      String generatedRecommendation = await _geminiService.generateRecommendation(exerciseData);
+      String generatedRecommendation =
+          await _geminiService.generateRecommendation(exerciseData);
       if (mounted) {
         setState(() {
           _recommendation = generatedRecommendation.isNotEmpty
@@ -149,8 +158,7 @@ class _AiPageState extends State<AiPage> {
                   padding: EdgeInsets.all(8.0),
                   child: Text(
                     'Tip: Fitness experts recommend following a regimen for at least 4-6 weeks to see noticeable progress.',
-                    style:
-                        TextStyle(fontStyle: FontStyle.italic, fontSize: 12),
+                    style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -173,7 +181,8 @@ class _AiPageState extends State<AiPage> {
             onChanged: (value) {
               inputText = value;
             },
-            decoration: const InputDecoration(hintText: "E.g., Quick upper body workout"),
+            decoration: const InputDecoration(
+                hintText: "E.g., Quick upper body workout"),
           ),
           actions: <Widget>[
             TextButton(
@@ -205,7 +214,8 @@ class _AiPageState extends State<AiPage> {
         _availableExercises,
         userInput,
       );
-      List<Map<String, dynamic>> exercises = parseWorkoutPlan(workoutPlan, _availableExercises);
+      List<Map<String, dynamic>> exercises =
+          parseWorkoutPlan(workoutPlan, _availableExercises);
 
       if (exercises.isEmpty) {
         throw const FormatException('No valid exercises generated');
@@ -235,7 +245,8 @@ class _AiPageState extends State<AiPage> {
         }
       }
 
-      DocumentReference<Object?>? sessionDoc = await _sessionFirestore.addSession(newSession);
+      DocumentReference<Object?>? sessionDoc =
+          await _sessionFirestore.addSession(newSession);
 
       Navigator.push(
         context,
@@ -263,19 +274,22 @@ class _AiPageState extends State<AiPage> {
     setState(() => _isLoading = true);
 
     try {
-      List<Map<String, dynamic>> regimenPlan = await _geminiService.generateWorkoutRegimen(
-          _userProfile['fitnessProfile'], _availableExercises);
+      List<Map<String, dynamic>> regimenPlan =
+          await _geminiService.generateWorkoutRegimen(
+              _userProfile['fitnessProfile'], _availableExercises);
 
       for (var template in regimenPlan) {
         Session newSession = Session(
           title: "${template['name']}",
           date: DateTime.now(),
-          exercises: (template['exercises'] as List<dynamic>).map((e) => {
-            'title': e['title'],
-            'sets': e['sets'],
-            'reps': List.filled(e['sets'], 0),
-            'weights': List.filled(e['sets'], 0),
-          }).toList(),
+          exercises: (template['exercises'] as List<dynamic>)
+              .map((e) => {
+                    'title': e['title'],
+                    'sets': e['sets'],
+                    'reps': List.filled(e['sets'], 0),
+                    'weights': List.filled(e['sets'], 0),
+                  })
+              .toList(),
           isTemplate: true,
         );
         await _sessionFirestore.addSession(newSession);
@@ -372,7 +386,8 @@ class _AiPageState extends State<AiPage> {
         children: [
           Text(
             'Coach',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+            style: TextStyle(
+                fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
           ),
         ],
       ),
