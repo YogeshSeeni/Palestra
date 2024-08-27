@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:dash_chat_2/dash_chat_2.dart';
-import 'package:Palestra/util/parse_workout.dart'; 
+import 'package:Palestra/util/parse_workout.dart';
 
 class GeminiService {
   final Gemini _gemini = Gemini.instance;
@@ -12,13 +12,58 @@ class GeminiService {
       response +=
           event.content?.parts?.map((part) => part.text).join(" ") ?? '';
     }
-    response = response.replaceAll("**","");
+    response = response.replaceAll("**", "");
     response = response.replaceAll("* ", "• ");
     return response.trim();
   }
 
+  Future<String> exerciseAnalysis(String exerciseName,
+      List<Map<String, dynamic>> exerciseData, Map<String, dynamic> profile) async {
+    String prompt = """
+Provide a brief analysis and feedback for the $exerciseName exercise based on the following data:
+$exerciseData
+User's profile: ${json.encode(profile)}
+
+Focus on:
+1. Overall performance trend
+2. Areas of improvement
+3. A specific, actionable tip to enhance performance
+4. How the exercise can be taken advantage of to reach user's goal. Be specific here. How should the exercise be done in a way that tailors to the user's goals and overall profile? For example, is there an optimal range for # sets or # reps? Think of ways to tailor it better to the user.
+
+Keep the response concise (3-4 sentences max for pointers 1-3, 3 sentences max for pointer 4).
+
+Analysis and Tip:
+""";
+
+    return await getGeminiResponse(prompt);
+  }
+
+  Future<String> generateGoalBasedFeedback(String exerciseName,
+    String metric,
+    List<Map<String, dynamic>> exerciseData,
+    Map<String, dynamic> profile) async {
+    String prompt = """
+  Generate goal-based feedback for the $exerciseName exercise, focusing on the $metric metric.
+  User's profile: ${json.encode(profile)}
+  Exercise data: ${json.encode(exerciseData)}
+
+  Instructions:
+  1. Analyze the exercise data in the context of the user's full fitness profile. Place emphasis on ensuring that your advice aligns with the user's goal.
+  2. Provide specific, actionable feedback related to the $metric that aligns with the user's primary fitness goal (${profile['fitnessProfile']?['fitnessGoals']?[0] ?? 'general fitness'}).
+  3. Consider the user's workout frequency (${profile['fitnessProfile']?['workoutDaysPerWeek'] ?? 'unknown'} days per week) and duration (${profile['fitnessProfile']?['workoutTimePerDay'] ?? 'unknown'} minutes per day) when giving advice.
+  4. If relevant, factor in the user's height (${profile['fitnessProfile']?['height']?['feet'] ?? 'unknown'}' ${profile['fitnessProfile']?['height']?['inches'] ?? 'unknown'}"), weight (${profile['fitnessProfile']?['weight'] ?? 'unknown'} lbs), and years of training (since ${profile['fitnessProfile']?['yearStarted'] ?? 'unknown'}).
+  5. Keep the feedback concise (2-3 sentences) and motivational.
+  6. If the data shows good progress towards the user's goals, acknowledge it. If there's room for improvement, suggest how.
+  7. Tailor the feedback to the specific exercise, metric, and the user's overall fitness profile.
+
+  Feedback:
+  """;
+
+    return await getGeminiResponse(prompt);
+  }
+
   Future<String> sendMessage(
-      String message, List<ChatMessage> chatHistory) async {
+      String message, List<ChatMessage> chatHistory, Map<String, dynamic> userProfile) async {
     String conversationContext = chatHistory
         .map((msg) => "${msg.user.firstName}: ${msg.text}")
         .join("\n");
@@ -29,12 +74,16 @@ $conversationContext
 
 User's new message: $message
 
+User's profile:
+${json.encode(userProfile)}
+
 Instructions:
 1. Respond to the user's message in the context of being an AI fitness coach.
 2. Keep the response concise but informative.
 3. If asked about exercises, provide brief explanations and safety tips.
 4. If asked about workout plans, suggest consulting the workout regimen feature.
 5. Always encourage safe and healthy practices.
+6. Tailor your response to the user's profile when relevant.
 
 Please provide your response:
 """;
@@ -169,15 +218,4 @@ Workout tip:
 
     return await getGeminiResponse(prompt);
   }
-
-  Future<String> exerciseTip(String exerciseName, Map data) async {
-    String prompt = """
-Provide tips for the $exerciseName exercise. The following is the data for the exercise that the user has performed:
-$data
-    """;
-
-    return await getGeminiResponse(prompt);
-  }
-
-  
 }

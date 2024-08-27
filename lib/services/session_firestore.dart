@@ -4,9 +4,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class SessionFirestore {
   final String userID;
   late final CollectionReference sessions;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   SessionFirestore({required this.userID}) {
-    sessions = FirebaseFirestore.instance.collection('users/$userID/sessions');
+    sessions = _firestore.collection('users/$userID/sessions');
   }
 
   Future<DocumentReference<Object?>> addSession(Session session) =>
@@ -34,7 +35,6 @@ class SessionFirestore {
           .map((doc) => doc.data() as Map<String, dynamic>)
           .toList();
     } catch (e) {
-      print("Error fetching sessions: $e");
       return [];
     }
   }
@@ -57,9 +57,7 @@ class SessionFirestore {
         }
       } 
     } catch (e) {
-      print("Error fetching unique exercises: $e");
     }
-    print(exercises);
     return exercises.toList();
   }
 
@@ -81,8 +79,6 @@ class SessionFirestore {
           }
         }
       }
-
-      print(exerciseData);
       return exerciseData;
     } catch (e) {
       return {};
@@ -91,18 +87,25 @@ class SessionFirestore {
 
   Future<List<Map<String, dynamic>>> fetchExerciseData(String exerciseTitle) async {
     try {
-      QuerySnapshot querySnapshot = await sessions.get();
-      return querySnapshot.docs
-          .expand((doc) => (doc['exercises'] as List)
-              .where((ex) => ex['title'] == exerciseTitle)
-              .map((ex) => {
+      QuerySnapshot querySnapshot = await sessions.where('isTemplate', isEqualTo: false).get();
+
+      List<Map<String, dynamic>> result = querySnapshot.docs
+          .expand((doc) {
+            List exercises = doc['exercises'] as List;
+            return exercises
+                .where((ex) => ex['title'] == exerciseTitle)
+                .map((ex) {
+                  return {
                     'date': doc['date'],
                     'reps': ex['reps'],
                     'weights': ex['weights']
-                  }))
+                  };
+                });
+          })
           .toList();
+
+      return result;
     } catch (e) {
-      print("Error fetching exercise data: $e");
       return [];
     }
   }
@@ -125,8 +128,16 @@ class SessionFirestore {
 
       return exerciseData;
     } catch (e) {
-      print("Error fetching all exercise data: $e");
       return {};
     }
+  }
+
+  Stream<QuerySnapshot> getNonTemplateSessionStream() {
+    return _firestore
+        .collection('users')
+        .doc(userID)
+        .collection('sessions')
+        .where('isTemplate', isEqualTo: false)
+        .snapshots();
   }
 }

@@ -6,7 +6,7 @@ import 'package:Palestra/models/session.dart';
 import 'package:Palestra/services/session_firestore.dart';
 import 'package:Palestra/services/gemini_service.dart';
 import 'package:Palestra/pages/session_page.dart';
-import 'package:Palestra/util/parse_workout.dart';  // Updated import
+import 'package:Palestra/util/parse_workout.dart'; 
 
 class AiPage extends StatefulWidget {
   const AiPage({super.key});
@@ -39,17 +39,21 @@ class _AiPageState extends State<AiPage> {
     _greetUser();
   }
 
-  void _initializeServices() {
+  // Initialize Firestore and Gemini services
+  void _initializeServices() async {
     final user = _auth.currentUser;
     if (user != null) {
       _sessionFirestore = SessionFirestore(userID: user.uid);
+      await _loadUserProfile();
     }
     _geminiService = GeminiService();
   }
 
+  // Fetches exercises and their attributes (title, technique, primary muscles, secondary muscles) from exercise library 
   Future<void> _fetchExercises() async {
     try {
-      QuerySnapshot querySnapshot = await _firestore.collection('exercises').get();
+      QuerySnapshot querySnapshot =
+          await _firestore.collection('exercises').get();
       setState(() {
         _availableExercises = querySnapshot.docs
             .map((doc) => {
@@ -60,35 +64,41 @@ class _AiPageState extends State<AiPage> {
             .toList();
       });
     } catch (e) {
-      print("Error fetching exercises: $e");
     }
   }
-
+  
+  // Load user profile that provides user's biometrics, experience, etc.
   Future<void> _loadUserProfile() async {
-    User? user = _auth.currentUser;
-    if (user != null) {
-      DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_auth.currentUser!.uid)
+        .get();
+    
+    if (userDoc.exists) {
       setState(() {
         _userProfile = userDoc.data() as Map<String, dynamic>;
       });
     }
   }
 
+  // Fetch exercise
   Future<void> _fetchExerciseData() async {
     if (!mounted) return;
     try {
-      Map<String, List<Map<String, dynamic>>> fetchedData = await _sessionFirestore.fetchAllExercisesForChatbot();
+      Map<String, List<Map<String, dynamic>>> fetchedData =
+          await _sessionFirestore.fetchAllExercisesForChatbot();
       if (mounted) {
         await _generateRecommendation(fetchedData);
       }
     } catch (e) {
-      print("Error fetching exercise data: $e");
     }
   }
 
-  Future<void> _generateRecommendation(Map<String, List<Map<String, dynamic>>> exerciseData) async {
+  Future<void> _generateRecommendation(
+      Map<String, List<Map<String, dynamic>>> exerciseData) async {
     try {
-      String generatedRecommendation = await _geminiService.generateRecommendation(exerciseData);
+      String generatedRecommendation =
+          await _geminiService.generateRecommendation(exerciseData);
       if (mounted) {
         setState(() {
           _recommendation = generatedRecommendation.isNotEmpty
@@ -97,7 +107,6 @@ class _AiPageState extends State<AiPage> {
         });
       }
     } catch (e) {
-      print("Error generating recommendation: $e");
       if (mounted) {
         setState(() {
           _recommendation =
@@ -149,8 +158,7 @@ class _AiPageState extends State<AiPage> {
                   padding: EdgeInsets.all(8.0),
                   child: Text(
                     'Tip: Fitness experts recommend following a regimen for at least 4-6 weeks to see noticeable progress.',
-                    style:
-                        TextStyle(fontStyle: FontStyle.italic, fontSize: 12),
+                    style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -173,7 +181,8 @@ class _AiPageState extends State<AiPage> {
             onChanged: (value) {
               inputText = value;
             },
-            decoration: const InputDecoration(hintText: "E.g., Quick upper body workout"),
+            decoration: const InputDecoration(
+                hintText: "Quick upper body workout"),
           ),
           actions: <Widget>[
             TextButton(
@@ -205,7 +214,8 @@ class _AiPageState extends State<AiPage> {
         _availableExercises,
         userInput,
       );
-      List<Map<String, dynamic>> exercises = parseWorkoutPlan(workoutPlan, _availableExercises);
+      List<Map<String, dynamic>> exercises =
+          parseWorkoutPlan(workoutPlan, _availableExercises);
 
       if (exercises.isEmpty) {
         throw const FormatException('No valid exercises generated');
@@ -235,7 +245,8 @@ class _AiPageState extends State<AiPage> {
         }
       }
 
-      DocumentReference<Object?>? sessionDoc = await _sessionFirestore.addSession(newSession);
+      DocumentReference<Object?>? sessionDoc =
+          await _sessionFirestore.addSession(newSession);
 
       Navigator.push(
         context,
@@ -251,7 +262,6 @@ class _AiPageState extends State<AiPage> {
       _addMessage(_geminiUser,
           "I've created a workout based on your request: '$userInput'. You can now start your session, and I've also saved a template for future use. You can find the template in the Templates section on the home page. Feel free to customize it as needed!");
     } catch (e) {
-      print("Error processing workout plan: $e");
       _addMessage(_geminiUser,
           "I'm sorry, I encountered an error while creating your workout. Could you try simplifying your request or being more specific?");
     }
@@ -263,19 +273,22 @@ class _AiPageState extends State<AiPage> {
     setState(() => _isLoading = true);
 
     try {
-      List<Map<String, dynamic>> regimenPlan = await _geminiService.generateWorkoutRegimen(
-          _userProfile['fitnessProfile'], _availableExercises);
+      List<Map<String, dynamic>> regimenPlan =
+          await _geminiService.generateWorkoutRegimen(
+              _userProfile['fitnessProfile'], _availableExercises);
 
       for (var template in regimenPlan) {
         Session newSession = Session(
           title: "${template['name']}",
           date: DateTime.now(),
-          exercises: (template['exercises'] as List<dynamic>).map((e) => {
-            'title': e['title'],
-            'sets': e['sets'],
-            'reps': List.filled(e['sets'], 0),
-            'weights': List.filled(e['sets'], 0),
-          }).toList(),
+          exercises: (template['exercises'] as List<dynamic>)
+              .map((e) => {
+                    'title': e['title'],
+                    'sets': e['sets'],
+                    'reps': List.filled(e['sets'], 0),
+                    'weights': List.filled(e['sets'], 0),
+                  })
+              .toList(),
           isTemplate: true,
         );
         await _sessionFirestore.addSession(newSession);
@@ -284,7 +297,6 @@ class _AiPageState extends State<AiPage> {
       _addMessage(_geminiUser,
           "I've created a personalized weekly workout regimen based on your profile and preferences. You can find these workout templates in the Templates section on the home page. Feel free to adjust them as needed. Remember, consistency is key - try to follow this regimen for at least 4-6 weeks to see significant progress!");
     } catch (e) {
-      print("Error processing workout regimen: $e");
       _addMessage(_geminiUser,
           "I'm sorry, I encountered an error while creating your workout regimen. Could you try again later?");
     }
@@ -312,11 +324,13 @@ class _AiPageState extends State<AiPage> {
     setState(() => _isLoading = true);
 
     try {
-      String response =
-          await _geminiService.sendMessage(message.text, _messages);
+      String response = await _geminiService.sendMessage(
+        message.text,
+        _messages,
+        _userProfile,
+      );
       _addMessage(_geminiUser, response);
     } catch (e) {
-      print("Error processing message: $e");
       _addMessage(_geminiUser,
           "I apologize, but I couldn't process your request at the moment. Could you please try rephrasing your question?");
     }
@@ -331,7 +345,6 @@ class _AiPageState extends State<AiPage> {
       String tip = await _geminiService.getTip();
       _addMessage(_geminiUser, "Here's a quick workout tip: $tip");
     } catch (e) {
-      print("Error getting tip: $e");
       _addMessage(_geminiUser,
           "I'm sorry, I couldn't generate a tip right now. Let me know if you have any specific questions!");
     }
@@ -372,7 +385,8 @@ class _AiPageState extends State<AiPage> {
         children: [
           Text(
             'Coach',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+            style: TextStyle(
+                fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
           ),
         ],
       ),

@@ -62,13 +62,6 @@ class _SessionPageState extends State<SessionPage> {
           style: const TextStyle(fontSize: 24),
         ),
         backgroundColor: Colors.grey[200],
-        actions: [
-          if (widget.isTemplate)
-            IconButton(
-              icon: const Icon(Icons.save),
-              onPressed: _saveTemplate,
-            ),
-        ],
       ),
       body: Column(
         children: [

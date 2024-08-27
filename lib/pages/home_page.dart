@@ -60,14 +60,14 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 actions: [
-                  MaterialButton(
-                      onPressed: saveSession,
-                      child: const Text("Save",
-                          style: TextStyle(color: Colors.black))),
-                  MaterialButton(
-                      onPressed: cancel,
-                      child: const Text("Cancel",
-                          style: TextStyle(color: Colors.black)))
+                  TextButton(
+                    onPressed: cancel,
+                    child: const Text("Cancel", style: TextStyle(color: Colors.black)),
+                  ),
+                  TextButton(
+                    onPressed: saveSession,
+                    child: const Text("Save", style: TextStyle(color: Colors.black)),
+                  ),
                 ]));
   }
 
@@ -137,7 +137,7 @@ class _HomePageState extends State<HomePage> {
               await sessionFirestore?.deleteSession(sessionId);
               Navigator.pop(context);
             },
-            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+            child: const Text("Save", style: TextStyle(color: Colors.black)),
           ),
         ],
       ),
@@ -145,7 +145,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void reuseSession(Session session) async {
-    Session newSession = Session.withTitle("${session.title} (Copy)");
+    Session newSession = Session.withTitle(session.title);
     // Copy exercises from the original session to the new session
     for (var exercise in session.exercises) {
       newSession.addExercise(exercise['title']);
@@ -258,31 +258,50 @@ class _HomePageState extends State<HomePage> {
     return StreamBuilder<QuerySnapshot>(
       stream: sessionFirestore?.getTemplateStream(),
       builder: (context, snapshot) {
-        if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
-          List templatesList = snapshot.data!.docs
-              .where((doc) => (doc.data() as Map<String, dynamic>)['isTemplate'] == true)
-              .toList();
-
-          if (templatesList.isEmpty) {
-            return const SizedBox.shrink();
-          }
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Templates",
+                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: _addNewTemplate,
+                    icon: const Icon(Icons.add),
+                    label: const Text("Add Template"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (snapshot.connectionState == ConnectionState.waiting)
+              const Center(child: CircularProgressIndicator())
+            else if (!snapshot.hasData || snapshot.data!.docs.isEmpty)
               const Padding(
                 padding: EdgeInsets.all(16.0),
-                child: Text(
-                  "Templates",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                child: Center(
+                  child: Text(
+                    "No templates available.\nCreate one to supercharge your workout routine!",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16),
+                  ),
                 ),
-              ),
+              )
+            else
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: templatesList.length,
+                itemCount: snapshot.data!.docs.length,
                 itemBuilder: (context, index) {
-                  DocumentSnapshot document = templatesList[index];
+                  DocumentSnapshot document = snapshot.data!.docs[index];
                   String docID = document.id;
                   Session template =
                       Session.fromJson(document.data() as Map<String, dynamic>);
@@ -324,11 +343,57 @@ class _HomePageState extends State<HomePage> {
                   );
                 },
               ),
-            ],
-          );
-        } else {
-          return const SizedBox.shrink();
-        }
+          ],
+        );
+      },
+    );
+  }
+
+  void _addNewTemplate() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String newTemplateName = "";
+        return AlertDialog(
+          title: const Text("Create New Template"),
+          content: TextField(
+            onChanged: (value) {
+              newTemplateName = value;
+            },
+            decoration: const InputDecoration(hintText: "Enter template name"),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text("Save"),
+              onPressed: () {
+                if (newTemplateName.isNotEmpty) {
+                  Session newTemplate = Session.withTitle(newTemplateName);
+                  newTemplate.isTemplate = true;
+                  sessionFirestore?.addSession(newTemplate).then((sessionDoc) {
+                    Navigator.of(context).pop(); // Close the dialog
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SessionPage(
+                          session: newTemplate,
+                          sessionID: sessionDoc.id,
+                          sessionFirestore: sessionFirestore!,
+                          isTemplate: true,
+                        ),
+                      ),
+                    );
+                  });
+                }
+              },
+            ),
+          ],
+        );
       },
     );
   }
@@ -349,7 +414,7 @@ class _HomePageState extends State<HomePage> {
 
   void _useTemplate(Session template, String templateId) {
     Session newSession = Session(
-      title: "${template.title} ${DateTime.now().toString().split(' ')[0]}",
+      title: template.title,
       date: DateTime.now(),
       exercises: template.exercises,
       isTemplate: false,
@@ -385,7 +450,7 @@ class _HomePageState extends State<HomePage> {
               await sessionFirestore?.deleteSession(templateId);
               Navigator.pop(context);
             },
-            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+            child: const Text("Save", style: TextStyle(color: Colors.black)),
           ),
         ],
       ),
