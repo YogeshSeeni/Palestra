@@ -47,7 +47,7 @@ class _AnalyzePageState extends State<AnalyzePage> {
             padding: EdgeInsets.all(16.0),
             child: Text(
               "Analyze",
-              style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
           ),
           WorkoutsPerWeekCard(),

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:get/get.dart';
 import 'package:Palestra/pages/goals_page.dart';
+import 'package:intl/intl.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -204,7 +205,7 @@ class _HomePageState extends State<HomePage> {
                   document.data() as Map<String, dynamic>);
 
               return Card(
-                color: Colors.grey[400],
+                color: Colors.grey[300],
                 margin: const EdgeInsets.symmetric(
                     vertical: 8, horizontal: 16),
                 child: ExpansionTile(
@@ -213,7 +214,7 @@ class _HomePageState extends State<HomePage> {
                           fontSize: 18,
                           fontWeight: FontWeight.bold)),
                   subtitle: Text(
-                    session.date.toString(),
+                    DateFormat.yMMMd().format(session.date).toString()
                   ),
                   children: [
                     ...session.exercises.map((exercise) => ListTile(
@@ -273,7 +274,7 @@ class _HomePageState extends State<HomePage> {
                 padding: EdgeInsets.all(16.0),
                 child: Text(
                   "Templates",
-                  style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
               ListView.builder(
@@ -287,12 +288,12 @@ class _HomePageState extends State<HomePage> {
                       Session.fromJson(document.data() as Map<String, dynamic>);
 
                   return Card(
-                    color: Colors.grey[400],
+                    color: Colors.grey[300],
                     margin:
                         const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: ExpansionTile(
                       title: Text(template.title,
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                       subtitle: Text("Exercises: ${template.exercises.length}"),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -499,7 +500,7 @@ class _HomePageState extends State<HomePage> {
                         Text(
                           "Session History",
                           style: TextStyle(
-                              fontSize: 25, fontWeight: FontWeight.bold),
+                              fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                       ]),
                 ),

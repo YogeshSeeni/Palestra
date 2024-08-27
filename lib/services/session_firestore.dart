@@ -48,6 +48,10 @@ class SessionFirestore {
       
       for (var doc in querySnapshot.docs) {
         Session session = Session.fromJson(doc.data() as Map<String, dynamic>);
+        if (session.isTemplate == true) {
+          continue;
+        }
+
         for (var exercise in session.exercises) {
           exercises.add(exercise['title']);
         }
