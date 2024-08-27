@@ -71,7 +71,6 @@ class _GoalsPageState extends State<GoalsPage> {
           }
         }
       } catch (e) {
-        print('Error fetching user data: $e');
       }
     }
   }
@@ -391,8 +390,6 @@ class _GoalsPageState extends State<GoalsPage> {
         
         Navigator.of(context).pop();
       } catch (e) {
-        print('Error saving profile: $e');
-        // You can choose to show an error message here if you want
       }
     }
   }

@@ -42,7 +42,6 @@ class Session {
         try {
           return DateTime.parse(date.replaceAll(' ', 'T'));
         } catch (e) {
-          print("Failed to parse date string: $date");
           return DateTime.now();
         }
       }
@@ -51,7 +50,6 @@ class Session {
     } else if (date is DateTime) {
       return date;
     } else {
-      print("Unexpected date format: $date");
       return DateTime.now();
     }
   }

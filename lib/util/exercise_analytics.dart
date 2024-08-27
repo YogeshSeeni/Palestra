@@ -52,10 +52,10 @@ class _ExerciseAnalyticsCardState extends State<ExerciseAnalyticsCard> {
         if (fetchedData.isNotEmpty) {
           double maxValue = _calculateMaxValue(fetchedData);
           targetValue = (maxValue * 1.1 / 5).round() * 5; // Round to nearest 5
+        } else {
         }
       });
     } catch (e) {
-      print("Error fetching exercise data: $e");
       setState(() {
         isLoading = false;
       });

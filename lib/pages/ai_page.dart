@@ -40,10 +40,11 @@ class _AiPageState extends State<AiPage> {
   }
 
   // Initialize Firestore and Gemini services
-  void _initializeServices() {
+  void _initializeServices() async {
     final user = _auth.currentUser;
     if (user != null) {
       _sessionFirestore = SessionFirestore(userID: user.uid);
+      await _loadUserProfile();
     }
     _geminiService = GeminiService();
   }
@@ -63,16 +64,17 @@ class _AiPageState extends State<AiPage> {
             .toList();
       });
     } catch (e) {
-      print("Error fetching exercises: $e");
     }
   }
   
   // Load user profile that provides user's biometrics, experience, etc.
   Future<void> _loadUserProfile() async {
-    User? user = _auth.currentUser;
-    if (user != null) {
-      DocumentSnapshot userDoc =
-          await _firestore.collection('users').doc(user.uid).get();
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_auth.currentUser!.uid)
+        .get();
+    
+    if (userDoc.exists) {
       setState(() {
         _userProfile = userDoc.data() as Map<String, dynamic>;
       });
@@ -89,7 +91,6 @@ class _AiPageState extends State<AiPage> {
         await _generateRecommendation(fetchedData);
       }
     } catch (e) {
-      print("Error fetching exercise data: $e");
     }
   }
 
@@ -106,7 +107,6 @@ class _AiPageState extends State<AiPage> {
         });
       }
     } catch (e) {
-      print("Error generating recommendation: $e");
       if (mounted) {
         setState(() {
           _recommendation =
@@ -182,7 +182,7 @@ class _AiPageState extends State<AiPage> {
               inputText = value;
             },
             decoration: const InputDecoration(
-                hintText: "E.g., Quick upper body workout"),
+                hintText: "Quick upper body workout"),
           ),
           actions: <Widget>[
             TextButton(
@@ -262,7 +262,6 @@ class _AiPageState extends State<AiPage> {
       _addMessage(_geminiUser,
           "I've created a workout based on your request: '$userInput'. You can now start your session, and I've also saved a template for future use. You can find the template in the Templates section on the home page. Feel free to customize it as needed!");
     } catch (e) {
-      print("Error processing workout plan: $e");
       _addMessage(_geminiUser,
           "I'm sorry, I encountered an error while creating your workout. Could you try simplifying your request or being more specific?");
     }
@@ -298,7 +297,6 @@ class _AiPageState extends State<AiPage> {
       _addMessage(_geminiUser,
           "I've created a personalized weekly workout regimen based on your profile and preferences. You can find these workout templates in the Templates section on the home page. Feel free to adjust them as needed. Remember, consistency is key - try to follow this regimen for at least 4-6 weeks to see significant progress!");
     } catch (e) {
-      print("Error processing workout regimen: $e");
       _addMessage(_geminiUser,
           "I'm sorry, I encountered an error while creating your workout regimen. Could you try again later?");
     }
@@ -326,11 +324,13 @@ class _AiPageState extends State<AiPage> {
     setState(() => _isLoading = true);
 
     try {
-      String response =
-          await _geminiService.sendMessage(message.text, _messages);
+      String response = await _geminiService.sendMessage(
+        message.text,
+        _messages,
+        _userProfile,
+      );
       _addMessage(_geminiUser, response);
     } catch (e) {
-      print("Error processing message: $e");
       _addMessage(_geminiUser,
           "I apologize, but I couldn't process your request at the moment. Could you please try rephrasing your question?");
     }
@@ -345,7 +345,6 @@ class _AiPageState extends State<AiPage> {
       String tip = await _geminiService.getTip();
       _addMessage(_geminiUser, "Here's a quick workout tip: $tip");
     } catch (e) {
-      print("Error getting tip: $e");
       _addMessage(_geminiUser,
           "I'm sorry, I couldn't generate a tip right now. Let me know if you have any specific questions!");
     }

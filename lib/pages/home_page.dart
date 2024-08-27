@@ -144,7 +144,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void reuseSession(Session session) async {
-    Session newSession = Session.withTitle("${session.title} (Copy)");
+    Session newSession = Session.withTitle(session.title);
     // Copy exercises from the original session to the new session
     for (var exercise in session.exercises) {
       newSession.addExercise(exercise['title']);
@@ -413,7 +413,7 @@ class _HomePageState extends State<HomePage> {
 
   void _useTemplate(Session template, String templateId) {
     Session newSession = Session(
-      title: "${template.title} ${DateTime.now().toString().split(' ')[0]}",
+      title: template.title,
       date: DateTime.now(),
       exercises: template.exercises,
       isTemplate: false,

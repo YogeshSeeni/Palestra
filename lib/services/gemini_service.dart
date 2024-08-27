@@ -63,7 +63,7 @@ Analysis and Tip:
   }
 
   Future<String> sendMessage(
-      String message, List<ChatMessage> chatHistory) async {
+      String message, List<ChatMessage> chatHistory, Map<String, dynamic> userProfile) async {
     String conversationContext = chatHistory
         .map((msg) => "${msg.user.firstName}: ${msg.text}")
         .join("\n");
@@ -74,12 +74,16 @@ $conversationContext
 
 User's new message: $message
 
+User's profile:
+${json.encode(userProfile)}
+
 Instructions:
 1. Respond to the user's message in the context of being an AI fitness coach.
 2. Keep the response concise but informative.
 3. If asked about exercises, provide brief explanations and safety tips.
 4. If asked about workout plans, suggest consulting the workout regimen feature.
 5. Always encourage safe and healthy practices.
+6. Tailor your response to the user's profile when relevant.
 
 Please provide your response:
 """;

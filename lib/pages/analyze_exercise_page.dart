@@ -42,7 +42,6 @@ class _AnalyzeExercisePageState extends State<AnalyzeExercisePage> {
           await _firestore.collection('users').doc(user.uid).get();
       setState(() {
         _userProfile = userDoc.data() as Map<String, dynamic>;
-        print("Loaded user profile: $_userProfile"); // Debug print
         
       });
     }
