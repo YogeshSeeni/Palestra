@@ -229,4 +229,23 @@ class _AnalyzeExercisePageState extends State<AnalyzeExercisePage> {
       ),
     );
   }
+
+  void _fetchExerciseData() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      SessionFirestore sessionFirestore = SessionFirestore(userID: user.uid);
+      List<Map<String, dynamic>> fetchedData = await sessionFirestore.fetchExerciseData(widget.exerciseName);
+      
+      if (mounted) {
+        setState(() {
+          exerciseData = fetchedData;
+          isLoading = false;
+        });
+      }
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 }

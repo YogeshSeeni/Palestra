@@ -51,8 +51,7 @@ class _ExerciseAnalyticsCardState extends State<ExerciseAnalyticsCard> {
         isLoading = false;
         if (fetchedData.isNotEmpty) {
           double maxValue = _calculateMaxValue(fetchedData);
-          double rawTarget = maxValue * 1.1; // Set target to 5% more than max value
-          targetValue = (rawTarget / 5).round() * 5; // Round to nearest 5
+          targetValue = (maxValue * 1.1 / 5).round() * 5; // Round to nearest 5
         }
       });
     } catch (e) {

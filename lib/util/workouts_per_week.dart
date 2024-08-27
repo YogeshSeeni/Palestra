@@ -25,6 +25,7 @@ class _WorkoutsPerWeekCardState extends State<WorkoutsPerWeekCard> {
             .collection('users')
             .doc(FirebaseAuth.instance.currentUser?.uid)
             .collection('sessions')
+            .where('isTemplate', isEqualTo: false)
             .snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {

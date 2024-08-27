@@ -30,7 +30,16 @@ class _AnalyzePageState extends State<AnalyzePage> {
       sessionFirestore = SessionFirestore(userID: currentUser!.uid);
 
       setState(() {
-        uniqueExercisesFuture = sessionFirestore!.fetchUniqueExercises();
+        uniqueExercisesFuture = sessionFirestore?.getNonTemplateSessionStream().first.then((snapshot) {
+          Set<String> uniqueExercises = {};
+          for (var doc in snapshot.docs) {
+            List<dynamic> exercises = doc['exercises'];
+            for (var exercise in exercises) {
+              uniqueExercises.add(exercise['title']);
+            }
+          }
+          return uniqueExercises.toList();
+        });
       });
     }
   }

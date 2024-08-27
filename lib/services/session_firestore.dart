@@ -4,9 +4,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class SessionFirestore {
   final String userID;
   late final CollectionReference sessions;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   SessionFirestore({required this.userID}) {
-    sessions = FirebaseFirestore.instance.collection('users/$userID/sessions');
+    sessions = _firestore.collection('users/$userID/sessions');
   }
 
   Future<DocumentReference<Object?>> addSession(Session session) =>
@@ -124,5 +125,14 @@ class SessionFirestore {
       print("Error fetching all exercise data: $e");
       return {};
     }
+  }
+
+  Stream<QuerySnapshot> getNonTemplateSessionStream() {
+    return _firestore
+        .collection('users')
+        .doc(userID)
+        .collection('sessions')
+        .where('isTemplate', isEqualTo: false)
+        .snapshots();
   }
 }
