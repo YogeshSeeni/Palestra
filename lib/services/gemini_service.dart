@@ -128,7 +128,8 @@ Only include exercises from the provided 'Available exercises' list.
 
   Future<List<Map<String, dynamic>>> generateWorkoutRegimen(
       Map<String, dynamic> profile,
-      List<Map<String, dynamic>> availableExercises) async {
+      List<Map<String, dynamic>> availableExercises,
+      String preferredSplit) async {
     String prompt = """
 Create a personalized weekly workout regimen overview based on the following user profile:
 Height: ${profile['height']?['feet'] ?? 'N/A'}'${profile['height']?['inches'] ?? 'N/A'}"
@@ -139,20 +140,22 @@ Special condition: ${profile['specialCondition'] ?? 'None'}
 Workout days per week: ${profile['workoutDaysPerWeek'] ?? 'N/A'}
 Workout time per day: ${profile['workoutTimePerDay'] ?? 'N/A'} minutes
 Gym access: ${profile['gymAccess'] ?? 'N/A'}
+Preferred split: $preferredSplit
 
 Instructions:
-1. Create a ${profile['workoutDaysPerWeek'] ?? 3}-day workout plan overview for the week.
+1. Create a ${profile['workoutDaysPerWeek'] ?? 3}-day workout plan overview for the week, considering the user's preferred split of "$preferredSplit". Note: fit the split to the user's preferred workout days per week. 
 2. For each day, provide a name and focus (e.g., "Upper Body", "Lower Body", etc.). Do NOT list rest days no matter the user. 
 3. For users who train 5 or more days a week, ensure all muscles are targeted and generate creative workouts (e.g. Beach Muscles (Chest, Biceps, Abs)).
 4. Ensure the regimen is balanced and appropriate for the user's goals, experience level, and preferences.
 5. Format your response as a simple list, with each day on a new line. Order the workouts in a reasonable manner. 
+6. Do not include rest days.
 
 Example output:
 Upper Body
 Lower Body
 Full Body
 
-Do NOT list dashes, numbers, or days. ONLY LIST WITH NEW LINES. For example, do not output the following:
+Do NOT list dashes, numbers, or days. Only list with new lines. For example, do not output the following:
 - Upper Body
 - Lower Body
 - Full Body

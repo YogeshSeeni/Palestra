@@ -270,12 +270,18 @@ class _AiPageState extends State<AiPage> {
   }
 
   void _createWorkoutRegimen() async {
+    String preferredSplit = await _getPreferredSplit();
+    if (preferredSplit.isEmpty) return;
+
     setState(() => _isLoading = true);
 
     try {
       List<Map<String, dynamic>> regimenPlan =
           await _geminiService.generateWorkoutRegimen(
-              _userProfile['fitnessProfile'], _availableExercises);
+        _userProfile['fitnessProfile'],
+        _availableExercises,
+        preferredSplit,
+      );
 
       for (var template in regimenPlan) {
         Session newSession = Session(
@@ -302,6 +308,40 @@ class _AiPageState extends State<AiPage> {
     }
 
     setState(() => _isLoading = false);
+  }
+
+  Future<String> _getPreferredSplit() async {
+    return await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        String inputText = '';
+        return AlertDialog(
+          title: const Text('Which split do you prefer?'),
+          content: TextField(
+            onChanged: (value) {
+              inputText = value;
+            },
+            decoration: const InputDecoration(
+              hintText: "Push, pull, legs",
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop('');
+              },
+            ),
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop(inputText);
+              },
+            ),
+          ],
+        );
+      },
+    ) ?? '';
   }
 
   void _addMessage(ChatUser user, String text) {
@@ -420,7 +460,7 @@ class _AiPageState extends State<AiPage> {
               children: [
                 ElevatedButton.icon(
                   icon: const Icon(Icons.add),
-                  label: const Text('Create Workout'),
+                  label: const Text('Create Workout', style: TextStyle(fontWeight: FontWeight.bold)),
                   onPressed: _createWorkout,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
@@ -429,7 +469,7 @@ class _AiPageState extends State<AiPage> {
                 ),
                 ElevatedButton.icon(
                   icon: const Icon(Icons.lightbulb_outline),
-                  label: const Text('Get Tip'),
+                  label: const Text('Get Tip', style: TextStyle(fontWeight: FontWeight.bold)),
                   onPressed: _getTip,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
