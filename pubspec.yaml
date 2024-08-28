@@ -48,7 +48,7 @@ dependencies:
   rxdart: ^0.27.3
   google_sign_in: ^6.2.1
   flutter_launcher_icons: ^0.13.1
-
+  shared_preferences: ^2.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

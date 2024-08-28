@@ -49,7 +49,7 @@ class _AnalyzePageState extends State<AnalyzePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Select an Exercise'),
+          title: const Text('Select an Exercise'),
           content: SizedBox(
             width: double.maxFinite,
             child: FutureBuilder<List<String>>(

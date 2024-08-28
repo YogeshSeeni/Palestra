@@ -12,6 +12,7 @@ class AddExerciseDialog extends StatelessWidget {
     final TextEditingController primaryMusclesController = TextEditingController();
     final TextEditingController secondaryMusclesController = TextEditingController();
     final TextEditingController techniqueController = TextEditingController();
+    final TextEditingController equipmentController = TextEditingController();
 
     return AlertDialog(
       title: const Text('Add Exercise'),
@@ -35,6 +36,10 @@ class AddExerciseDialog extends StatelessWidget {
               controller: techniqueController,
               decoration: const InputDecoration(labelText: 'Technique', hintText: 'Lie flat on a bench...'),
             ),
+            TextField(
+              controller: equipmentController,
+              decoration: const InputDecoration(labelText: 'Equipment', hintText: 'Barbell, Bench'),
+            ),
           ],
         ),
       ),
@@ -52,6 +57,7 @@ class AddExerciseDialog extends StatelessWidget {
               primaryMuscles: primaryMusclesController.text.split(',').map((s) => s.trim()).toList(),
               secondaryMuscles: secondaryMusclesController.text.split(',').map((s) => s.trim()).toList(),
               technique: techniqueController.text,
+              equipment: equipmentController.text,
             );
             onAdd(newExercise);
             Navigator.of(context).pop();

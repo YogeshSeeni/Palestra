@@ -20,6 +20,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   User? currentUser;
   SessionFirestore? sessionFirestore;
+  bool _showQuickStartGuide = true;
 
   @override
   void initState() {
@@ -30,29 +31,29 @@ class _HomePageState extends State<HomePage> {
 
   final newSessionNameController = TextEditingController();
 
- void checkTrainingGoals() async {
-  User? user = FirebaseAuth.instance.currentUser;
-  if (user != null) {
-    DocumentSnapshot userDoc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .get();
-    
-    Map<String, dynamic>? userData = userDoc.data() as Map<String, dynamic>?;
-    if (!userDoc.exists || userData == null || !userData.containsKey('fitnessProfile')) {
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => const GoalsPage(isInitialSetup: true),
-      ));
+  void checkTrainingGoals() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      
+      Map<String, dynamic>? userData = userDoc.data() as Map<String, dynamic>?;
+      if (!userDoc.exists || userData == null || !userData.containsKey('fitnessProfile')) {
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => const GoalsPage(isInitialSetup: true),
+        ));
+      }
     }
   }
-}
   
 
   void createNewSession() {
     showDialog(
         context: context,
         builder: (context) => AlertDialog(
-                title: const Text("Start workout session"),
+                title: const Text("Start Workout Session"),
                 content: TextField(
                   controller: newSessionNameController,
                   decoration: const InputDecoration(
@@ -182,16 +183,21 @@ class _HomePageState extends State<HomePage> {
           List sessionsList = snapshot.data!.docs
               .where((doc) {
                 Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-                // Include sessions that are explicitly not templates or don't have the isTemplate property
                 return data['isTemplate'] == false || !data.containsKey('isTemplate');
               })
               .toList();
 
           if (sessionsList.isEmpty) {
-            return const Column(children: [
-              SizedBox(height: 150),
-              Center(child: Text("No non-template sessions available")),
-            ]);
+            return const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Center(
+                child: Text(
+                  "No sessions available.\nStart a workout session now to begin tracking!",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+            );
           }
 
           return ListView.builder(
@@ -230,8 +236,12 @@ class _HomePageState extends State<HomePage> {
                       alignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () => _editSession(session, docID),
+                        ),
+                        IconButton(
                           icon: const Icon(Icons.recycling),
-                          onPressed: () => reuseSession(session),
+                          onPressed: () => _makeTemplate(session),
                         ),
                         IconButton(
                           icon: const Icon(Icons.delete),
@@ -245,11 +255,79 @@ class _HomePageState extends State<HomePage> {
             },
           );
         } else {
-          return const Column(children: [
-            SizedBox(height: 150),
-            Center(child: Text("No data available")),
-          ]);
+          return const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(
+              child: Text(
+                "No sessions available.\nStart a workout session now to begin tracking!",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+          );
         }
+      },
+    );
+  }
+
+  void _editSession(Session session, String sessionId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SessionPage(
+          session: session,
+          sessionID: sessionId,
+          sessionFirestore: sessionFirestore!,
+        ),
+      ),
+    );
+  }
+
+  void _makeTemplate(Session session) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String templateName = session.title;
+        return AlertDialog(
+          title: const Text("Create Template from Session"),
+          content: TextField(
+            onChanged: (value) {
+              templateName = value;
+            },
+            decoration: const InputDecoration(
+              hintText: "Enter template name",
+              labelText: "Template Name",
+            ),
+            controller: TextEditingController(text: session.title),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text("Save"),
+              onPressed: () {
+                if (templateName.isNotEmpty) {
+                  Session newTemplate = Session(
+                    title: templateName,
+                    date: DateTime.now(),
+                    exercises: session.exercises,
+                    isTemplate: true,
+                  );
+                  sessionFirestore?.addSession(newTemplate).then((_) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Template created successfully")),
+                    );
+                  });
+                }
+              },
+            ),
+          ],
+        );
       },
     );
   }
@@ -273,7 +351,7 @@ class _HomePageState extends State<HomePage> {
                   ElevatedButton.icon(
                     onPressed: _addNewTemplate,
                     icon: const Icon(Icons.add),
-                    label: const Text("Add Template"),
+                    label: const Text("Add Template", style: TextStyle(fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
                       foregroundColor: Colors.white,
@@ -308,36 +386,34 @@ class _HomePageState extends State<HomePage> {
 
                   return Card(
                     color: Colors.grey[300],
-                    margin:
-                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: ExpansionTile(
                       title: Text(template.title,
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                       subtitle: Text("Exercises: ${template.exercises.length}"),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => _editTemplate(template, docID),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.play_arrow),
-                            onPressed: () => _useTemplate(template, docID),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () => _deleteTemplate(docID),
-                          ),
-                        ],
-                      ),
                       children: [
                         ...template.exercises
                             .map((exercise) => ListTile(
                                   title: Text(exercise['title'] ?? 'Unknown Exercise'),
-                                  subtitle:
-                                      Text("Sets: ${(exercise['reps'] as List?)?.length ?? 0}"),
+                                  subtitle: Text("Sets: ${(exercise['reps'] as List?)?.length ?? 0}"),
                                 )),
+                        ButtonBar(
+                          alignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () => _editTemplate(template, docID),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.play_arrow),
+                              onPressed: () => _useTemplate(template, docID),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () => _deleteTemplate(docID),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   );
@@ -457,34 +533,110 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _startTemplateWorkout(Map<String, dynamic> template) async {
-    String sessionName =
-        "${template['name']} - ${DateTime.now().toString().split(' ')[0]}";
-    Session newSession = Session.withTitle(sessionName);
-
-    for (var exercise in template['exercises']) {
-      newSession.addExercise(exercise['name']);
-      for (int i = 0; i < exercise['sets']; i++) {
-        newSession.addReps(exercise['name'], 0);
-        newSession.addWeight(exercise['name'], 0);
-      }
-    }
-
-    DocumentReference<Object?>? sessionDoc =
-        await sessionFirestore?.addSession(newSession);
-
-    if (sessionDoc != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => SessionPage(
-            session: newSession,
-            sessionID: sessionDoc.id,
-            sessionFirestore: sessionFirestore!,
+  Widget _buildWelcomeSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Welcome to Palestra!",
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
-        ),
-      );
-    }
+          SizedBox(height: 16),
+          Text(
+            "Your personal fitness journey starts here. Track your workouts, analyze your progress, and create personalized workout plans.",
+            style: TextStyle(fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickStartGuide() {
+    if (!_showQuickStartGuide) return const SizedBox.shrink();
+    
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "Quick Start Guide",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: _markQuickStartGuideAsSeen,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildGuideStep(
+            icon: Icons.add_circle_outline,
+            title: "Create a Session",
+            description: "Start by creating your first workout session.",
+          ),
+          _buildGuideStep(
+            icon: Icons.fitness_center,
+            title: "Log Your Workouts",
+            description: "Record your exercises, sets, reps, and weights for each session.",
+          ),
+          _buildGuideStep(
+            icon: Icons.save_alt,
+            title: "Create Templates",
+            description: "Save your favorite workouts as templates for quick access.",
+          ),
+          _buildGuideStep(
+            icon: Icons.create,
+            title: "Add Custom Exercises",
+            description: "Can't find an exercise? Add your own to the database.",
+          ),
+          _buildGuideStep(
+            icon: Icons.smart_toy,
+            title: "AI Workout Generation",
+            description: "Use AI to generate personalized workouts or regimens.",
+          ),
+          _buildGuideStep(
+            icon: Icons.analytics,
+            title: "Analyze Your Progress",
+            description: "Utilize AI and graphs to visualize and understand your fitness journey.",
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGuideStep({required IconData icon, required String title, required String description}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 24),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text(description, style: const TextStyle(fontSize: 14)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _markQuickStartGuideAsSeen() {
+    setState(() {
+      _showQuickStartGuide = false;
+    });
   }
 
   @override
@@ -556,18 +708,20 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(height: 16),
+                _buildWelcomeSection(),
+                if (_showQuickStartGuide) _buildQuickStartGuide(),
                 _buildTemplatesSection(),
                 const Padding(
-                  padding: EdgeInsets.all(16.0),
+                  padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Session History",
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                      ]),
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Session History",
+                        style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                      ),
+                    ]
+                  ),
                 ),
                 _buildSessionHistory(),
               ],

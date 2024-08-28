@@ -37,6 +37,8 @@ class ExerciseInfoDialog extends StatelessWidget {
               const SizedBox(height: 10),
               Text('Secondary Muscles: ${exercise.secondaryMuscles.join(', ')}'),
               const SizedBox(height: 10),
+              Text('Equipment: ${exercise.equipment}'),
+              const SizedBox(height: 10),
               Text('Technique: ${exercise.technique}'),
             ],
           ),

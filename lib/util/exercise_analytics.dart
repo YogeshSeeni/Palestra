@@ -315,7 +315,7 @@ class _ExerciseAnalyticsCardState extends State<ExerciseAnalyticsCard> {
                             height: 300,
                             child: LineChart(_generateChartData()),
                           ),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Text(
                             'Target: ${widget.metric == "1RM" || widget.metric == "Volume" ? targetValue.toInt() : targetValue.toStringAsFixed(1)} ${widget.metric == "Reps" || widget.metric == "Sets" ? "" : "pounds"}',
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),

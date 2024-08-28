@@ -11,6 +11,41 @@ import 'package:Palestra/util/parse_workout.dart';
 class AiPage extends StatefulWidget {
   const AiPage({super.key});
 
+  static Future<void> createWorkoutRegimen(BuildContext context, Map<String, dynamic> userProfile) async {
+    final geminiService = GeminiService();
+    final sessionFirestore = SessionFirestore(userID: FirebaseAuth.instance.currentUser!.uid);
+    final availableExercises = await FirebaseFirestore.instance.collection('exercises').get().then(
+      (snapshot) => snapshot.docs.map((doc) => {
+        'id': doc.id,
+        'title': doc['title'] as String,
+        'primaryMuscles': doc['primaryMuscles'] as List<dynamic>,
+      }).toList(),
+    );
+
+    List<Map<String, dynamic>> regimenPlan = await geminiService.generateWorkoutRegimen(userProfile, availableExercises);
+
+    for (var template in regimenPlan) {
+      Session newSession = Session(
+        title: "${template['name']}",
+        date: DateTime.now(),
+        exercises: (template['exercises'] as List<dynamic>)
+            .map((e) => {
+                  'title': e['title'],
+                  'sets': e['sets'],
+                  'reps': List.filled(e['sets'], 0),
+                  'weights': List.filled(e['sets'], 0),
+                })
+            .toList(),
+        isTemplate: true,
+      );
+      await sessionFirestore.addSession(newSession);
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Personalized workout regimen created successfully!')),
+    );
+  }
+
   @override
   State<AiPage> createState() => _AiPageState();
 }
@@ -151,7 +186,7 @@ class _AiPageState extends State<AiPage> {
                   subtitle: const Text('Create a weekly workout plan'),
                   onTap: () {
                     Navigator.of(context).pop();
-                    _createWorkoutRegimen();
+                    AiPage.createWorkoutRegimen(context, _userProfile);
                   },
                 ),
                 const Padding(
@@ -264,41 +299,6 @@ class _AiPageState extends State<AiPage> {
     } catch (e) {
       _addMessage(_geminiUser,
           "I'm sorry, I encountered an error while creating your workout. Could you try simplifying your request or being more specific?");
-    }
-
-    setState(() => _isLoading = false);
-  }
-
-  void _createWorkoutRegimen() async {
-    setState(() => _isLoading = true);
-
-    try {
-      List<Map<String, dynamic>> regimenPlan =
-          await _geminiService.generateWorkoutRegimen(
-              _userProfile['fitnessProfile'], _availableExercises);
-
-      for (var template in regimenPlan) {
-        Session newSession = Session(
-          title: "${template['name']}",
-          date: DateTime.now(),
-          exercises: (template['exercises'] as List<dynamic>)
-              .map((e) => {
-                    'title': e['title'],
-                    'sets': e['sets'],
-                    'reps': List.filled(e['sets'], 0),
-                    'weights': List.filled(e['sets'], 0),
-                  })
-              .toList(),
-          isTemplate: true,
-        );
-        await _sessionFirestore.addSession(newSession);
-      }
-
-      _addMessage(_geminiUser,
-          "I've created a personalized weekly workout regimen based on your profile and preferences. You can find these workout templates in the Templates section on the home page. Feel free to adjust them as needed. Remember, consistency is key - try to follow this regimen for at least 4-6 weeks to see significant progress!");
-    } catch (e) {
-      _addMessage(_geminiUser,
-          "I'm sorry, I encountered an error while creating your workout regimen. Could you try again later?");
     }
 
     setState(() => _isLoading = false);
@@ -420,7 +420,7 @@ class _AiPageState extends State<AiPage> {
               children: [
                 ElevatedButton.icon(
                   icon: const Icon(Icons.add),
-                  label: const Text('Create Workout'),
+                  label: const Text('Create Workout', style: TextStyle(fontWeight: FontWeight.bold)),
                   onPressed: _createWorkout,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
@@ -429,7 +429,7 @@ class _AiPageState extends State<AiPage> {
                 ),
                 ElevatedButton.icon(
                   icon: const Icon(Icons.lightbulb_outline),
-                  label: const Text('Get Tip'),
+                  label: const Text('Get Tip', style: TextStyle(fontWeight: FontWeight.bold)),
                   onPressed: _getTip,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
