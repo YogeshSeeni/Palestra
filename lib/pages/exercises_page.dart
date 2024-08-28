@@ -15,6 +15,7 @@ class ExercisesPage extends StatefulWidget {
 
 class _ExercisesPageState extends State<ExercisesPage> {
   final ExerciseFirestore exerciseFirestore = ExerciseFirestore();
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -100,6 +101,29 @@ class _ExercisesPageState extends State<ExercisesPage> {
     );
   }
 
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
+      child: TextField(
+        decoration: InputDecoration(
+          hintText: 'Search exercises...',
+          prefixIcon: const Icon(Icons.search),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+        ),
+        onChanged: (value) {
+          setState(() {
+            _searchQuery = value.toLowerCase();
+          });
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -109,10 +133,18 @@ class _ExercisesPageState extends State<ExercisesPage> {
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             List<DocumentSnapshot> exerciseList = snapshot.data!;
+            List<DocumentSnapshot> filteredList = exerciseList.where((doc) {
+              Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+              String title = data['title'].toString().toLowerCase();
+              List<String> primaryMuscles = List<String>.from(data['primaryMuscles'] ?? []);
+              return title.contains(_searchQuery) || 
+                     primaryMuscles.any((muscle) => muscle.toLowerCase().contains(_searchQuery));
+            }).toList();
+
             return Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 12.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -138,11 +170,13 @@ class _ExercisesPageState extends State<ExercisesPage> {
                     ],
                   ),
                 ),
+                _buildSearchBar(),
                 Expanded(
                   child: ListView.builder(
-                    itemCount: exerciseList.length,
+                    padding: const EdgeInsets.only(top: 0.0), // Removed top padding
+                    itemCount: filteredList.length,
                     itemBuilder: (context, index) {
-                      DocumentSnapshot document = exerciseList[index];
+                      DocumentSnapshot document = filteredList[index];
                       Map<String, dynamic> data =
                           document.data() as Map<String, dynamic>;
                       ExerciseInfo exercise = ExerciseInfo.fromJson(data);

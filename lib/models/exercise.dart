@@ -3,12 +3,14 @@ class ExerciseInfo {
   final List<String> primaryMuscles;
   final List<String> secondaryMuscles;
   final String technique;
+  final String equipment;
 
   ExerciseInfo({
     required this.title,
     required this.primaryMuscles,
     required this.secondaryMuscles,
     required this.technique,
+    required this.equipment,
   });
 
   Map<String, dynamic> toJson() => {
@@ -16,6 +18,7 @@ class ExerciseInfo {
     'primaryMuscles': primaryMuscles,
     'secondaryMuscles': secondaryMuscles,
     'technique': technique,
+    'equipment': equipment,
   };
 
   factory ExerciseInfo.fromJson(Map<String, dynamic> data) {
@@ -24,6 +27,7 @@ class ExerciseInfo {
       primaryMuscles: List<String>.from(data['primaryMuscles']),
       secondaryMuscles: List<String>.from(data['secondaryMuscles']),
       technique: data['technique'] as String,
+      equipment: data['equipment'] as String,
     );
   }
 }
