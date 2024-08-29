@@ -148,7 +148,7 @@ class _HomePageState extends State<HomePage> {
               await sessionFirestore?.deleteSession(sessionId);
               Navigator.pop(context);
             },
-            child: const Text("Save", style: TextStyle(color: Colors.black)),
+            child: const Text("Delete", style: TextStyle(color: Colors.black)),
           ),
         ],
       ),
@@ -547,7 +547,7 @@ class _HomePageState extends State<HomePage> {
               await sessionFirestore?.deleteSession(templateId);
               Navigator.pop(context);
             },
-            child: const Text("Save", style: TextStyle(color: Colors.black)),
+            child: const Text("Delete", style: TextStyle(color: Colors.black)),
           ),
         ],
       ),
