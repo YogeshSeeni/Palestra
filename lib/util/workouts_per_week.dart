@@ -91,7 +91,7 @@ class _WorkoutsPerWeekCardState extends State<WorkoutsPerWeekCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       'Workouts Per Week',
@@ -151,43 +151,6 @@ class _WorkoutsPerWeekCardState extends State<WorkoutsPerWeekCard> {
           );
         },
       ),
-    );
-  }
-
-  void _showTargetInputDialog(BuildContext context) {
-    TextEditingController controller = TextEditingController(text: targetWorkouts.toString());
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Set Target Workouts'),
-          content: TextField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Target workouts per week'),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () {
-                int? newTarget = int.tryParse(controller.text);
-                if (newTarget != null && newTarget > 0) {
-                  setState(() {
-                    targetWorkouts = newTarget;
-                  });
-                }
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
     );
   }
 }
