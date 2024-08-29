@@ -14,7 +14,10 @@ class AnalyzePage extends StatefulWidget {
 class _AnalyzePageState extends State<AnalyzePage> {
   User? currentUser;
   SessionFirestore? sessionFirestore;
-  Future<List<String>>? uniqueExercisesFuture;
+  Map<String, int> uniqueExercises = {};
+  List<String> filteredExercises = [];
+  bool isLoading = true;
+  String searchQuery = '';
 
   @override
   void initState() {
@@ -29,19 +32,56 @@ class _AnalyzePageState extends State<AnalyzePage> {
       currentUser = FirebaseAuth.instance.currentUser;
       sessionFirestore = SessionFirestore(userID: currentUser!.uid);
 
-      setState(() {
-        uniqueExercisesFuture = sessionFirestore?.getNonTemplateSessionStream().first.then((snapshot) {
-          Set<String> uniqueExercises = {};
-          for (var doc in snapshot.docs) {
-            List<dynamic> exercises = doc['exercises'];
-            for (var exercise in exercises) {
-              uniqueExercises.add(exercise['title']);
-            }
-          }
-          return uniqueExercises.toList();
-        });
-      });
+      await fetchExercises();
     }
+  }
+
+  Future<void> fetchExercises() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    uniqueExercises = await sessionFirestore!.fetchUniqueExercisesWithCount();
+    filterExercises();
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  void filterExercises() {
+    filteredExercises = uniqueExercises.entries
+        .where((entry) => entry.value >= 3 && 
+                          entry.key.toLowerCase().contains(searchQuery.toLowerCase()))
+        .map((entry) => entry.key)
+        .toList();
+    filteredExercises.sort();
+  }
+
+  void updateSearchQuery(String query) {
+    setState(() {
+      searchQuery = query;
+      filterExercises();
+    });
+  }
+
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: TextField(
+        onChanged: updateSearchQuery,
+        decoration: InputDecoration(
+          labelText: 'Search exercises',
+          prefixIcon: const Icon(Icons.search),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.grey[200],
+        ),
+      ),
+    );
   }
 
   void _showExerciseSelectionDialog() {
@@ -52,39 +92,40 @@ class _AnalyzePageState extends State<AnalyzePage> {
           title: const Text('Select an Exercise'),
           content: SizedBox(
             width: double.maxFinite,
-            child: FutureBuilder<List<String>>(
-              future: uniqueExercisesFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No exercises found'));
-                } else {
-                  List<String> uniqueExercises = snapshot.data!;
-                  return ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: uniqueExercises.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(uniqueExercises[index]),
-                        onTap: () {
-                          Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AnalyzeExercisePage(
-                                exerciseName: uniqueExercises[index],
-                              ),
-                            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildSearchBar(),
+                Expanded(
+                  child: filteredExercises.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'You don\'t have enough data to analyze yet. Try tracking some workouts!',
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: filteredExercises.length,
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            title: Text(filteredExercises[index]),
+                            onTap: () {
+                              Navigator.pop(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AnalyzeExercisePage(
+                                    exerciseName: filteredExercises[index],
+                                  ),
+                                ),
+                              );
+                            },
                           );
                         },
-                      );
-                    },
-                  );
-                }
-              },
+                      ),
+                ),
+              ],
             ),
           ),
         );
@@ -116,13 +157,15 @@ class _AnalyzePageState extends State<AnalyzePage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: _showExerciseSelectionDialog,
+              onPressed: isLoading ? null : _showExerciseSelectionDialog,
               child: const Text(
                 'Perform an AI-powered analysis on an exercise',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.bold),
               ),
             ),
+            if (isLoading)
+              const Center(child: CircularProgressIndicator())
           ],
         ),
       ),
