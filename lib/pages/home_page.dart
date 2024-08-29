@@ -20,7 +20,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   User? currentUser;
   SessionFirestore? sessionFirestore;
-  bool _showQuickStartGuide = true;
+  bool? showQuickStartGuide = true;
 
   @override
   void initState() {
@@ -30,6 +30,26 @@ class _HomePageState extends State<HomePage> {
   }
 
   final newSessionNameController = TextEditingController();
+
+  void refreshUser() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await user.reload();
+
+      setState(() {
+        currentUser = FirebaseAuth.instance.currentUser;
+      });
+
+      // sessions firestore reference
+      sessionFirestore = SessionFirestore(userID: currentUser!.uid);
+
+      List<Map<String, dynamic>>? sessions = await sessionFirestore?.fetchUserSessions();
+
+      setState(() {
+        showQuickStartGuide = sessions?.isEmpty;  
+      });
+    }
+  }
 
   void checkTrainingGoals() async {
     User? user = FirebaseAuth.instance.currentUser;
@@ -105,20 +125,6 @@ class _HomePageState extends State<HomePage> {
 
   void clear() {
     newSessionNameController.clear();
-  }
-
-  void refreshUser() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      await user.reload();
-
-      setState(() {
-        currentUser = FirebaseAuth.instance.currentUser;
-      });
-
-      // sessions firestore reference
-      sessionFirestore = SessionFirestore(userID: currentUser!.uid);
-    }
   }
 
   void logout() {
@@ -323,7 +329,8 @@ class _HomePageState extends State<HomePage> {
                   sessionFirestore?.addSession(newTemplate).then((_) {
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Template created successfully")),
+                      const SnackBar(
+                          content: Text("Template created successfully")),
                     );
                   });
                 }
@@ -396,7 +403,8 @@ class _HomePageState extends State<HomePage> {
 
                   return Card(
                     color: Colors.grey[300],
-                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: ExpansionTile(
                       title: Text(template.title,
                           style: const TextStyle(
@@ -545,29 +553,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildWelcomeSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Welcome to Palestra!",
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 16),
-          Text(
-            "Your personal fitness journey starts here. Track your workouts, analyze your progress, and create personalized workout plans.",
-            style: TextStyle(fontSize: 16),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildQuickStartGuide() {
-    if (!_showQuickStartGuide) return const SizedBox.shrink();
-    
+    if (!showQuickStartGuide!) return const SizedBox.shrink();
+
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -587,6 +576,15 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           const SizedBox(height: 16),
+          Text(
+            "Welcome to Palestra!",
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 16),
+          Text(
+              "Your personal fitness journey starts here. Track your workouts, analyze your progress, and create personalized workout plans.",
+              style: TextStyle(fontSize: 16)),
+          SizedBox(height: 16),
           _buildGuideStep(
             icon: Icons.add_circle_outline,
             title: "Create a Session",
@@ -595,34 +593,42 @@ class _HomePageState extends State<HomePage> {
           _buildGuideStep(
             icon: Icons.fitness_center,
             title: "Log Your Workouts",
-            description: "Record your exercises, sets, reps, and weights for each session.",
+            description:
+                "Record your exercises, sets, reps, and weights for each session.",
           ),
           _buildGuideStep(
             icon: Icons.save_alt,
             title: "Create Templates",
-            description: "Save your favorite workouts as templates for quick access.",
+            description:
+                "Save your favorite workouts as templates for quick access.",
           ),
           _buildGuideStep(
             icon: Icons.create,
             title: "Add Custom Exercises",
-            description: "Can't find an exercise? Add your own to the database.",
+            description:
+                "Can't find an exercise? Add your own to the database.",
           ),
           _buildGuideStep(
             icon: Icons.smart_toy,
             title: "AI Workout Generation",
-            description: "Use AI to generate personalized workouts or regimens.",
+            description:
+                "Use AI to generate personalized workouts or regimens.",
           ),
           _buildGuideStep(
             icon: Icons.analytics,
             title: "Analyze Your Progress",
-            description: "Utilize AI and graphs to visualize and understand your fitness journey.",
+            description:
+                "Utilize AI and graphs to visualize and understand your fitness journey.",
           ),
         ],
       ),
     );
   }
 
-  Widget _buildGuideStep({required IconData icon, required String title, required String description}) {
+  Widget _buildGuideStep(
+      {required IconData icon,
+      required String title,
+      required String description}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -634,7 +640,9 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 Text(description, style: const TextStyle(fontSize: 14)),
               ],
@@ -645,9 +653,9 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _markQuickStartGuideAsSeen() {
+  void _markQuickStartGuideAsSeen() async {
     setState(() {
-      _showQuickStartGuide = false;
+      showQuickStartGuide = false;
     });
   }
 
@@ -719,11 +727,11 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                _buildWelcomeSection(),
-                if (_showQuickStartGuide) _buildQuickStartGuide(),
+                _buildQuickStartGuide(),
                 _buildTemplatesSection(),
                 const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
