@@ -411,23 +411,6 @@ class _HomePageState extends State<HomePage> {
                           style: const TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 18)),
                       subtitle: Text("Exercises: ${template.exercises.length}"),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => _editTemplate(template, docID),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.play_arrow),
-                            onPressed: () => _useTemplate(template, docID),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () => _deleteTemplate(docID),
-                          ),
-                        ],
-                      ),
                       children: [
                         ...template.exercises.map((exercise) => ListTile(
                               title:
@@ -435,6 +418,23 @@ class _HomePageState extends State<HomePage> {
                               subtitle: Text(
                                   "Sets: ${(exercise['reps'] as List?)?.length ?? 0}"),
                             )),
+                        ButtonBar(
+                          alignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () => _editTemplate(template, docID),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.play_arrow),
+                              onPressed: () => _useTemplate(template, docID),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () => _deleteTemplate(docID),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   );
