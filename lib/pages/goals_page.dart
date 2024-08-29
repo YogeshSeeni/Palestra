@@ -41,10 +41,32 @@ class _GoalsPageState extends State<GoalsPage> {
   List<String> _selectedGoals = [];
   List<String> _selectedBodyParts = [];
 
+  bool _isFormValid = false;
+
   @override
   void initState() {
     super.initState();
     _fetchUserData();
+    // Add listeners to all form fields
+    _weightController.addListener(_validateForm);
+    _sportController.addListener(_validateForm);
+  }
+
+  @override
+  void dispose() {
+    _weightController.removeListener(_validateForm);
+    _sportController.removeListener(_validateForm);
+    _weightController.dispose();
+    _sportController.dispose();
+    super.dispose();
+  }
+
+  void _validateForm() {
+    setState(() {
+      _isFormValid = _weightController.text.isNotEmpty &&
+          _selectedGoals.isNotEmpty &&
+          (_selectedGoals.contains('Sport Specific') ? _sportController.text.isNotEmpty : true);
+    });
   }
 
   Future<void> _fetchUserData() async {
@@ -78,7 +100,7 @@ class _GoalsPageState extends State<GoalsPage> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async => !widget.isInitialSetup,
+      onWillPop: () async => !widget.isInitialSetup && _isFormValid,
       child: Scaffold(
         backgroundColor: Colors.grey[200],
         appBar: AppBar(
@@ -125,14 +147,27 @@ class _GoalsPageState extends State<GoalsPage> {
               const SizedBox(height: 20),
 
               Center(
-                child: ElevatedButton(
-                  onPressed: _saveProfile,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                  ),
-                  child: const Text('Save Profile'),
+                child: Column(
+                  children: [
+                    ElevatedButton(
+                      onPressed: _isFormValid ? _saveProfile : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _isFormValid ? Colors.black : Colors.grey,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                      ),
+                      child: const Text('Save Profile'),
+                    ),
+                    if (!_isFormValid)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 10),
+                        child: Text(
+                          'Please fill out all required fields',
+                          style: TextStyle(color: Colors.red),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ],
@@ -157,6 +192,7 @@ class _GoalsPageState extends State<GoalsPage> {
             onChanged: (int? newValue) {
               setState(() {
                 _selectedFeet = newValue!;
+                _validateForm();
               });
             },
             decoration: const InputDecoration(
@@ -179,6 +215,7 @@ class _GoalsPageState extends State<GoalsPage> {
             onChanged: (int? newValue) {
               setState(() {
                 _selectedInches = newValue!;
+                _validateForm();
               });
             },
             decoration: const InputDecoration(
@@ -217,6 +254,7 @@ class _GoalsPageState extends State<GoalsPage> {
       onChanged: (int? newValue) {
         setState(() {
           _selectedYear = newValue!;
+          _validateForm();
         });
       },
       decoration: const InputDecoration(
@@ -239,6 +277,7 @@ class _GoalsPageState extends State<GoalsPage> {
       onChanged: (int? newValue) {
         setState(() {
           _workoutDaysPerWeek = newValue!;
+          _validateForm();
         });
       },
       decoration: const InputDecoration(
@@ -261,6 +300,7 @@ class _GoalsPageState extends State<GoalsPage> {
       onChanged: (int? newValue) {
         setState(() {
           _workoutTimePerDay = newValue!;
+          _validateForm();
         });
       },
       decoration: const InputDecoration(
@@ -283,6 +323,7 @@ class _GoalsPageState extends State<GoalsPage> {
       onChanged: (String? newValue) {
         setState(() {
           _gymAccess = newValue!;
+          _validateForm();
         });
       },
       decoration: const InputDecoration(
@@ -305,6 +346,7 @@ class _GoalsPageState extends State<GoalsPage> {
       onChanged: (String? newValue) {
         setState(() {
           _specialCondition = newValue!;
+          _validateForm();
         });
       },
       decoration: const InputDecoration(
@@ -332,6 +374,7 @@ class _GoalsPageState extends State<GoalsPage> {
                       _selectedGoals.remove(goal);
                       _sportController.clear();
                     }
+                    _validateForm();
                   });
                 },
               ),
@@ -359,6 +402,7 @@ class _GoalsPageState extends State<GoalsPage> {
               } else {
                 _selectedGoals.remove(goal);
               }
+              _validateForm();
             });
           },
         );
@@ -367,6 +411,8 @@ class _GoalsPageState extends State<GoalsPage> {
   }
 
   void _saveProfile() async {
+    if (!_isFormValid) return;
+
     User? user = _auth.currentUser;
     if (user != null) {
       try {
@@ -388,8 +434,18 @@ class _GoalsPageState extends State<GoalsPage> {
           }
         }, SetOptions(merge: true));
         
-        Navigator.of(context).pop();
+        if (widget.isInitialSetup) {
+          // Navigate to the next page in the initial setup flow
+          // Replace this with the appropriate navigation logic
+          // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => NextPage()));
+        } else {
+          Navigator.of(context).pop();
+        }
       } catch (e) {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving profile: ${e.toString()}')),
+        );
       }
     }
   }
