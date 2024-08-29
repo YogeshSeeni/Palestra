@@ -63,7 +63,7 @@ Analysis and Tip:
   }
 
   Future<String> sendMessage(
-      String message, List<ChatMessage> chatHistory, Map<String, dynamic> userProfile) async {
+      String message, List<ChatMessage> chatHistory, Map<String, dynamic> userProfile, Map<String, List<Map<String, dynamic>>> exerciseData) async {
     String conversationContext = chatHistory
         .map((msg) => "${msg.user.firstName}: ${msg.text}")
         .join("\n");
@@ -77,6 +77,9 @@ User's new message: $message
 User's profile:
 ${json.encode(userProfile)}
 
+User's Previous Session:
+$exerciseData
+
 Instructions:
 1. Respond to the user's message in the context of being an AI fitness coach.
 2. Keep the response concise but informative.
@@ -88,6 +91,7 @@ Instructions:
 Please provide your response:
 """;
 
+    print(prompt);
     return await getGeminiResponse(prompt);
   }
 
@@ -208,8 +212,11 @@ Recommendation:
     return await getGeminiResponse(prompt);
   }
 
-  Future<String> getTip() async {
+  Future<String> getTip(Map<String, List<Map<String, dynamic>>> exerciseData) async {
     String prompt = """
+User's Previous Exercise Data:
+$exerciseData
+
 Provide a quick, useful workout tip. The tip should be:
 1. Concise (20 words or less)
 2. Generally applicable to most fitness routines

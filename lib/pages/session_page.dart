@@ -62,6 +62,7 @@ class _SessionPageState extends State<SessionPage> {
           style: const TextStyle(fontSize: 24),
         ),
         backgroundColor: Colors.grey[200],
+        scrolledUnderElevation: 0.0,
       ),
       body: Column(
         children: [
