@@ -1,3 +1,4 @@
+import 'package:Palestra/services/session_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,6 +15,30 @@ class WorkoutsPerWeekCard extends StatefulWidget {
 
 class _WorkoutsPerWeekCardState extends State<WorkoutsPerWeekCard> {
   int targetWorkouts = 4; // Default target
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  Map<String, dynamic> _userProfile = {};
+
+
+  @override
+  void initState() {
+    super.initState();
+    getTargetWorkouts();
+  }
+
+  void getTargetWorkouts() async {
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_auth.currentUser!.uid)
+        .get();
+    
+    if (userDoc.exists) {
+      _userProfile = userDoc.data() as Map<String, dynamic>;
+
+      setState(() {
+        targetWorkouts = _userProfile['fitnessProfile']['workoutDaysPerWeek'];
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,21 +91,11 @@ class _WorkoutsPerWeekCardState extends State<WorkoutsPerWeekCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     const Text(
                       'Workouts Per Week',
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.adjust),
-                          onPressed: () {
-                            _showTargetInputDialog(context);
-                          },
-                        ),
-                      ],
                     ),
                   ],
                 ),
