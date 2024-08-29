@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:Palestra/pages/home_page.dart';
-import 'package:Palestra/pages/ai_page.dart';
 
 class GoalsPage extends StatefulWidget {
   final bool isInitialSetup;
@@ -42,8 +40,6 @@ class _GoalsPageState extends State<GoalsPage> {
   ];
   List<String> _selectedGoals = [];
   List<String> _selectedBodyParts = [];
-
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -92,58 +88,56 @@ class _GoalsPageState extends State<GoalsPage> {
           elevation: 0,
           automaticallyImplyLeading: !widget.isInitialSetup,
         ),
-        body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Biometrics', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  _buildHeightDropdowns(),
-                  const SizedBox(height: 10),
-                  _buildWeightTextField(),
-                  const SizedBox(height: 20),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Biometrics', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              _buildHeightDropdowns(),
+              const SizedBox(height: 10),
+              _buildWeightTextField(),
+              const SizedBox(height: 20),
 
-                  const Text('Experience', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  _buildYearStartedDropdown(),
-                  const SizedBox(height: 20),
+              const Text('Experience', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              _buildYearStartedDropdown(),
+              const SizedBox(height: 20),
 
-                  const Text('Workout Plan', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  _buildWorkoutDaysDropdown(),
-                  const SizedBox(height: 10),
-                  _buildWorkoutTimeDropdown(),
-                  const SizedBox(height: 10),
-                  _buildGymAccessDropdown(),
-                  const SizedBox(height: 20),
+              const Text('Workout Plan', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              _buildWorkoutDaysDropdown(),
+              const SizedBox(height: 10),
+              _buildWorkoutTimeDropdown(),
+              const SizedBox(height: 10),
+              _buildGymAccessDropdown(),
+              const SizedBox(height: 20),
 
-                  const Text('Special Conditions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  _buildSpecialConditionDropdown(),
-                  const SizedBox(height: 20),
+              const Text('Special Conditions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              _buildSpecialConditionDropdown(),
+              const SizedBox(height: 20),
 
-                  const Text('Fitness Goals', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  _buildGoalsMultiSelect(),
-                  const SizedBox(height: 20),
+              const Text('Fitness Goals', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              _buildGoalsMultiSelect(),
+              const SizedBox(height: 20),
 
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: _saveProfile,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                      ),
-                      child: const Text('Save Profile'),
-                    ),
+              Center(
+                child: ElevatedButton(
+                  onPressed: _saveProfile,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                   ),
-                ],
+                  child: const Text('Save Profile'),
+                ),
               ),
-            ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -394,72 +388,9 @@ class _GoalsPageState extends State<GoalsPage> {
           }
         }, SetOptions(merge: true));
         
-        if (widget.isInitialSetup) {
-          _showRegimenDialog();
-        } else {
-          Navigator.of(context).pop();
-        }
+        Navigator.of(context).pop();
       } catch (e) {
-        // Handle error
       }
     }
-  }
-
-  void _showRegimenDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Create Workout Regimen'),
-          content: const Text('Would you like to create a personalized workout regimen based on your profile?'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('No, thanks'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const HomePage()));
-              },
-            ),
-            TextButton(
-              child: const Text('Yes, please'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                _createWorkoutRegimen();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _createWorkoutRegimen() async {
-    setState(() => _isLoading = true);
-
-    try {
-      Map<String, dynamic> userProfile = {
-        'height': {'feet': _selectedFeet, 'inches': _selectedInches},
-        'weight': int.tryParse(_weightController.text) ?? 0,
-        'yearStarted': _selectedYear,
-        'fitnessGoals': _selectedGoals,
-        'workoutDaysPerWeek': _workoutDaysPerWeek,
-        'workoutTimePerDay': _workoutTimePerDay,
-        'gymAccess': _gymAccess,
-        'specialCondition': _specialCondition,
-        'sport': _sportController.text,
-        'bodyPartsToTrain': _selectedBodyParts,
-      };
-
-      await AiPage.createWorkoutRegimen(context, userProfile);
-
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to create workout regimen. Please try again later.')),
-      );
-    } finally {
-      setState(() => _isLoading = false);
-    }
-
-    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const HomePage()));
   }
 }

@@ -11,41 +11,6 @@ import 'package:Palestra/util/parse_workout.dart';
 class AiPage extends StatefulWidget {
   const AiPage({super.key});
 
-  static Future<void> createWorkoutRegimen(BuildContext context, Map<String, dynamic> userProfile) async {
-    final geminiService = GeminiService();
-    final sessionFirestore = SessionFirestore(userID: FirebaseAuth.instance.currentUser!.uid);
-    final availableExercises = await FirebaseFirestore.instance.collection('exercises').get().then(
-      (snapshot) => snapshot.docs.map((doc) => {
-        'id': doc.id,
-        'title': doc['title'] as String,
-        'primaryMuscles': doc['primaryMuscles'] as List<dynamic>,
-      }).toList(),
-    );
-
-    List<Map<String, dynamic>> regimenPlan = await geminiService.generateWorkoutRegimen(userProfile, availableExercises);
-
-    for (var template in regimenPlan) {
-      Session newSession = Session(
-        title: "${template['name']}",
-        date: DateTime.now(),
-        exercises: (template['exercises'] as List<dynamic>)
-            .map((e) => {
-                  'title': e['title'],
-                  'sets': e['sets'],
-                  'reps': List.filled(e['sets'], 0),
-                  'weights': List.filled(e['sets'], 0),
-                })
-            .toList(),
-        isTemplate: true,
-      );
-      await sessionFirestore.addSession(newSession);
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Personalized workout regimen created successfully!')),
-    );
-  }
-
   @override
   State<AiPage> createState() => _AiPageState();
 }
@@ -186,7 +151,7 @@ class _AiPageState extends State<AiPage> {
                   subtitle: const Text('Create a weekly workout plan'),
                   onTap: () {
                     Navigator.of(context).pop();
-                    AiPage.createWorkoutRegimen(context, _userProfile);
+                    _createWorkoutRegimen();
                   },
                 ),
                 const Padding(
