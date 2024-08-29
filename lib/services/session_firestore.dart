@@ -140,4 +140,27 @@ class SessionFirestore {
         .where('isTemplate', isEqualTo: false)
         .snapshots();
   }
+
+  Future<Map<String, int>> fetchUniqueExercisesWithCount() async {
+    Map<String, int> exerciseCounts = {};
+
+    try {
+      QuerySnapshot querySnapshot = await sessions.get();
+      
+      for (var doc in querySnapshot.docs) {
+        Session session = Session.fromJson(doc.data() as Map<String, dynamic>);
+        if (session.isTemplate == true) {
+          continue;
+        }
+
+        for (var exercise in session.exercises) {
+          String title = exercise['title'];
+          exerciseCounts[title] = (exerciseCounts[title] ?? 0) + 1;
+        }
+      } 
+    } catch (e) {
+      // Handle error
+    }
+    return exerciseCounts;
+  }
 }

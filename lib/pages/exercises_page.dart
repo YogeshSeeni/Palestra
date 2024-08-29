@@ -106,7 +106,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
       padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 8.0),
       child: TextField(
         decoration: InputDecoration(
-          hintText: 'Search exercises...',
+          hintText: 'Search exercises',
           prefixIcon: const Icon(Icons.search),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),

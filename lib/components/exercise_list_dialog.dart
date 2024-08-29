@@ -3,12 +3,42 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/exercise.dart';
 import 'package:Palestra/services/exercise_firestore.dart';
 
-class ExerciseListDialog extends StatelessWidget {
-  final ExerciseFirestore exerciseFirestore = ExerciseFirestore();
+class ExerciseListDialog extends StatefulWidget {
   final String sessionName;
   final Function(String) onExerciseAdded;
 
-  ExerciseListDialog({super.key, required this.sessionName, required this.onExerciseAdded});
+  const ExerciseListDialog({super.key, required this.sessionName, required this.onExerciseAdded});
+
+  @override
+  _ExerciseListDialogState createState() => _ExerciseListDialogState();
+}
+
+class _ExerciseListDialogState extends State<ExerciseListDialog> {
+  final ExerciseFirestore exerciseFirestore = ExerciseFirestore();
+  String searchQuery = '';
+
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: TextField(
+        onChanged: (value) {
+          setState(() {
+            searchQuery = value.toLowerCase();
+          });
+        },
+        decoration: InputDecoration(
+          labelText: 'Search exercises',
+          prefixIcon: const Icon(Icons.search),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Colors.grey[200],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,21 +61,30 @@ class ExerciseListDialog extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
+              _buildSearchBar(),
               Flexible(
                 child: StreamBuilder<List<DocumentSnapshot>>(
                   stream: exerciseFirestore.getExercisesStream(),
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
                       List<DocumentSnapshot> exerciseList = snapshot.data!;
+                      
+                      List<DocumentSnapshot> filteredList = exerciseList.where((doc) {
+                        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+                        String title = data['title'].toString().toLowerCase();
+                        List<String> primaryMuscles = List<String>.from(data['primaryMuscles'] ?? []);
+                        return title.contains(searchQuery) || 
+                               primaryMuscles.any((muscle) => muscle.toLowerCase().contains(searchQuery));
+                      }).toList();
         
-                      if (exerciseList.isEmpty) {
-                        return const Center(child: Text("No Exercises"));
+                      if (filteredList.isEmpty) {
+                        return const Center(child: Text("No matching exercises"));
                       }
         
                       return ListView.builder(
-                        itemCount: exerciseList.length,
+                        itemCount: filteredList.length,
                         itemBuilder: (context, index) {
-                          DocumentSnapshot document = exerciseList[index];
+                          DocumentSnapshot document = filteredList[index];
                           ExerciseInfo exerciseInfo = ExerciseInfo.fromJson(
                               document.data() as Map<String, dynamic>);
                       
@@ -53,7 +92,7 @@ class ExerciseListDialog extends StatelessWidget {
                             title: Text(exerciseInfo.title),
                             subtitle: Text(exerciseInfo.primaryMuscles.isNotEmpty ? exerciseInfo.primaryMuscles[0] : 'No primary muscle'),
                             onTap: () {
-                              onExerciseAdded(exerciseInfo.title);
+                              widget.onExerciseAdded(exerciseInfo.title);
                               Navigator.of(context).pop();
                             },
                             trailing: const Icon(Icons.add),
