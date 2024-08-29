@@ -86,6 +86,7 @@ class _GoalsPageState extends State<GoalsPage> {
           backgroundColor: Colors.grey[200],
           foregroundColor: Colors.black,
           elevation: 0,
+          scrolledUnderElevation: 0.0,
           automaticallyImplyLeading: !widget.isInitialSetup,
         ),
         body: SingleChildScrollView(
