@@ -116,6 +116,10 @@ class SessionFirestore {
       Map<String, List<Map<String, dynamic>>> exerciseData = {};
 
       for (var doc in querySnapshot.docs) {
+        if (doc['isTemplate'] == true) {
+          continue;
+        }
+        
         for (var ex in doc['exercises']) {
           String title = ex['title'];
           exerciseData.putIfAbsent(title, () => []).add({

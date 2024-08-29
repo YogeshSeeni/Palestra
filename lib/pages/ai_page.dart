@@ -20,6 +20,7 @@ class _AiPageState extends State<AiPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final List<ChatMessage> _messages = [];
   List<Map<String, dynamic>> _availableExercises = [];
+  late Map<String, List<Map<String, dynamic>>> exerciseData;
   bool _isLoading = false;
   Map<String, dynamic> _userProfile = {};
   String _recommendation = '';
@@ -85,10 +86,10 @@ class _AiPageState extends State<AiPage> {
   Future<void> _fetchExerciseData() async {
     if (!mounted) return;
     try {
-      Map<String, List<Map<String, dynamic>>> fetchedData =
+      exerciseData =
           await _sessionFirestore.fetchAllExercisesForChatbot();
       if (mounted) {
-        await _generateRecommendation(fetchedData);
+        await _generateRecommendation(exerciseData);
       }
     } catch (e) {
     }
@@ -368,6 +369,7 @@ class _AiPageState extends State<AiPage> {
         message.text,
         _messages,
         _userProfile,
+        exerciseData
       );
       _addMessage(_geminiUser, response);
     } catch (e) {
@@ -382,7 +384,7 @@ class _AiPageState extends State<AiPage> {
     setState(() => _isLoading = true);
 
     try {
-      String tip = await _geminiService.getTip();
+      String tip = await _geminiService.getTip(exerciseData);
       _addMessage(_geminiUser, "Here's a quick workout tip: $tip");
     } catch (e) {
       _addMessage(_geminiUser,
