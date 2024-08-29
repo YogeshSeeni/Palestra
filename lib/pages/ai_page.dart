@@ -304,6 +304,81 @@ class _AiPageState extends State<AiPage> {
     setState(() => _isLoading = false);
   }
 
+  void _createWorkoutRegimen() async {
+    String preferredSplit = await _getPreferredSplit();
+    if (preferredSplit.isEmpty) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      List<Map<String, dynamic>> regimenPlan =
+          await _geminiService.generateWorkoutRegimen(
+        _userProfile['fitnessProfile'],
+        _availableExercises,
+        preferredSplit,
+      );
+
+      for (var template in regimenPlan) {
+        Session newSession = Session(
+          title: "${template['name']}",
+          date: DateTime.now(),
+          exercises: (template['exercises'] as List<dynamic>)
+              .map((e) => {
+                    'title': e['title'],
+                    'sets': e['sets'],
+                    'reps': List.filled(e['sets'], 0),
+                    'weights': List.filled(e['sets'], 0),
+                  })
+              .toList(),
+          isTemplate: true,
+        );
+        await _sessionFirestore.addSession(newSession);
+      }
+
+      _addMessage(_geminiUser,
+          "I've created a personalized weekly workout regimen based on your profile and preferences. You can find these workout templates in the Templates section on the home page. Feel free to adjust them as needed. Remember, consistency is key - try to follow this regimen for at least 4-6 weeks to see significant progress!");
+    } catch (e) {
+      _addMessage(_geminiUser,
+          "I'm sorry, I encountered an error while creating your workout regimen. Could you try again later?");
+    }
+
+    setState(() => _isLoading = false);
+  }
+
+  Future<String> _getPreferredSplit() async {
+    return await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        String inputText = '';
+        return AlertDialog(
+          title: const Text('Which split do you prefer?'),
+          content: TextField(
+            onChanged: (value) {
+              inputText = value;
+            },
+            decoration: const InputDecoration(
+              hintText: "Push, pull, legs",
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop('');
+              },
+            ),
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop(inputText);
+              },
+            ),
+          ],
+        );
+      },
+    ) ?? '';
+  }
+
   void _addMessage(ChatUser user, String text) {
     if (mounted) {
       setState(() {
