@@ -14,7 +14,7 @@ class SessionFirestore {
       sessions.add(session.toJson());
 
   Stream<QuerySnapshot> getSessionStream() =>
-      sessions.orderBy('date', descending: true).snapshots();
+      sessions.where('isTemplate', isEqualTo: false).snapshots();
 
   Stream<QuerySnapshot> getTemplateStream() =>
       sessions.where('isTemplate', isEqualTo: true).snapshots();

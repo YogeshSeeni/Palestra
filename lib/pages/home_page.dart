@@ -22,7 +22,6 @@ class _HomePageState extends State<HomePage> {
   SessionFirestore? sessionFirestore;
   bool? showQuickStartGuide = true;
 
-
   @override
   void initState() {
     super.initState();
@@ -44,10 +43,11 @@ class _HomePageState extends State<HomePage> {
       // sessions firestore reference
       sessionFirestore = SessionFirestore(userID: currentUser!.uid);
 
-      List<Map<String, dynamic>>? sessions = await sessionFirestore?.fetchUserSessions();
+      List<Map<String, dynamic>>? sessions =
+          await sessionFirestore?.fetchUserSessions();
 
       setState(() {
-        showQuickStartGuide = sessions?.isEmpty;  
+        showQuickStartGuide = sessions?.isEmpty;
       });
     }
   }
@@ -207,57 +207,71 @@ class _HomePageState extends State<HomePage> {
             ),
             children: [
               if (snapshot.hasData && snapshot.data!.docs.isNotEmpty)
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: snapshot.data!.docs.length,
-                  itemBuilder: (context, index) {
-                    DocumentSnapshot document = snapshot.data!.docs[index];
-                    String docID = document.id;
-                    Session session =
-                        Session.fromJson(document.data() as Map<String, dynamic>);
+                Builder(builder: (context) {
+                  List<DocumentSnapshot> sortedDocs = snapshot.data!.docs
+                      .toList()
+                    ..sort((a, b) {
+                      Session sessionA =
+                          Session.fromJson(a.data() as Map<String, dynamic>);
+                      Session sessionB =
+                          Session.fromJson(b.data() as Map<String, dynamic>);
+                      return sessionB.date.compareTo(sessionA.date);
+                    });
 
-                    return Card(
-                      color: Colors.grey[300],
-                      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                      child: ExpansionTile(
-                        title: Text(session.title,
-                            style: const TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold)),
-                        subtitle:
-                            Text(DateFormat.yMMMd().format(session.date).toString()),
-                        children: [
-                          ...session.exercises.map((exercise) => ListTile(
-                                title: Text(
-                                    "${exercise['title'] ?? 'Unknown Exercise'}: ${(exercise['reps'] as List?)?.length ?? 0} sets",
-                                    style:
-                                        const TextStyle(fontWeight: FontWeight.bold)),
-                                subtitle: Text(
-                                  'Best set: ${_getBestSet(exercise['weights'] as List? ?? [], exercise['reps'] as List? ?? [])}',
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: sortedDocs.length,
+                    itemBuilder: (context, index) {
+                      DocumentSnapshot document = sortedDocs[index];
+                      String docID = document.id;
+                      Session session = Session.fromJson(
+                          document.data() as Map<String, dynamic>);
+
+                      return Card(
+                        color: Colors.grey[300],
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 16),
+                        child: ExpansionTile(
+                          title: Text(session.title,
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold)),
+                          subtitle: Text(DateFormat.yMMMd()
+                              .format(session.date)
+                              .toString()),
+                          children: [
+                            ...session.exercises.map((exercise) => ListTile(
+                                  title: Text(
+                                      "${exercise['title'] ?? 'Unknown Exercise'}: ${(exercise['reps'] as List?)?.length ?? 0} sets",
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold)),
+                                  subtitle: Text(
+                                    'Best set: ${_getBestSet(exercise['weights'] as List? ?? [], exercise['reps'] as List? ?? [])}',
+                                  ),
+                                )),
+                            ButtonBar(
+                              alignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit),
+                                  onPressed: () => _editSession(session, docID),
                                 ),
-                              )),
-                          ButtonBar(
-                            alignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit),
-                                onPressed: () => _editSession(session, docID),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.recycling),
-                                onPressed: () => _makeTemplate(session),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () => deleteSession(docID),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                )
+                                IconButton(
+                                  icon: const Icon(Icons.recycling),
+                                  onPressed: () => _makeTemplate(session),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete),
+                                  onPressed: () => deleteSession(docID),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                })
               else
                 Column(
                   children: [
@@ -403,21 +417,23 @@ class _HomePageState extends State<HomePage> {
                   itemBuilder: (context, index) {
                     DocumentSnapshot document = snapshot.data!.docs[index];
                     String docID = document.id;
-                    Session template =
-                        Session.fromJson(document.data() as Map<String, dynamic>);
+                    Session template = Session.fromJson(
+                        document.data() as Map<String, dynamic>);
 
                     return Card(
                       color: Colors.grey[300],
-                      margin:
-                          const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 16),
                       child: ExpansionTile(
                         title: Text(template.title,
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 18)),
-                        subtitle: Text("Exercises: ${template.exercises.length}"),
+                        subtitle:
+                            Text("Exercises: ${template.exercises.length}"),
                         children: [
                           ...template.exercises.map((exercise) => ListTile(
-                                title: Text(exercise['title'] ?? 'Unknown Exercise'),
+                                title: Text(
+                                    exercise['title'] ?? 'Unknown Exercise'),
                                 subtitle: Text(
                                     "Sets: ${(exercise['reps'] as List?)?.length ?? 0}"),
                               )),
@@ -557,7 +573,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
 
   Widget _buildQuickStartGuide() {
     if (!showQuickStartGuide!) return const SizedBox.shrink();
