@@ -45,8 +45,13 @@ class _RegisterPageState extends State<RegisterPage> {
           .createUserWithEmailAndPassword(
               email: emailController.text, password: passwordController.text);
 
-      // update display name
+    // Send email verification
+    await userCredential.user?.sendEmailVerification();
+    // Update display name
       await userCredential.user?.updateDisplayName(usernameController.text);
+
+    // Show a message to the user
+    displayMessage("Verification email sent. Please check your inbox.", context);
     } on FirebaseAuthException catch (e) {
       // Display error message
       displayMessage(e.message ?? 'An error occurred', context);
@@ -218,3 +223,4 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 }
+
