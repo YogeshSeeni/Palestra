@@ -2,6 +2,7 @@ import 'package:Palestra/components/my_button.dart';
 import 'package:Palestra/components/my_textfield.dart';
 import 'package:Palestra/components/square_tile.dart';
 import 'package:Palestra/helper/helper_functions.dart';
+import 'package:Palestra/pages/email_verification_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -28,9 +29,21 @@ class _LoginPageState extends State<LoginPage> {
   void login() async {
     isLoading.value = true;
 
-    //Sign User In
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailController.text, password: passwordController.text);
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text, 
+        password: passwordController.text
+      );
+
+      if (userCredential.user != null) {
+        if (!userCredential.user!.emailVerified) {
+          // Instead of showing a message, navigate to the EmailVerificationPage
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => EmailVerificationPage()),
+          );
+        }
+        // If email is verified, the AuthPage will automatically navigate to HomePage
+      }
     } on FirebaseAuthException catch (e) {
       displayMessage(e.code, context);
     } finally {
@@ -56,33 +69,52 @@ class _LoginPageState extends State<LoginPage> {
     await FirebaseAuth.instance.signInWithCredential(credential);
   }
 
+  // Forgot Password Method
+  void forgotPassword() async {
+    if (emailController.text.isEmpty) {
+      displayMessage("Please enter your email address", context);
+      return;
+    }
+
+    isLoading.value = true;
+
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: emailController.text);
+      displayMessage("Password reset email sent. Check your inbox.", context);
+    } on FirebaseAuthException catch (e) {
+      displayMessage(e.message ?? "An error occurred", context);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[300],
       body: SafeArea(
-        child: Stack(
-          children: [SingleChildScrollView(
+        child: Stack(children: [
+          SingleChildScrollView(
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(height: 25),
-          
+
                   // logo
                   Image.asset('lib/images/logo.png', height: 150),
-          
+
                   const SizedBox(height: 10),
-          
+
                   // "Welcome to the future of fitness."
                   Text('Welcome to the future of fitness.',
                       style: TextStyle(
                         color: Colors.grey[700],
                         fontSize: 16,
                       )),
-          
+
                   const SizedBox(height: 25),
-          
+
                   // Username text field
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -91,9 +123,9 @@ class _LoginPageState extends State<LoginPage> {
                         hintText: 'Email',
                         obscureText: false),
                   ),
-          
+
                   const SizedBox(height: 10),
-          
+
                   // Password text field
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -102,21 +134,24 @@ class _LoginPageState extends State<LoginPage> {
                         hintText: 'Password',
                         obscureText: true),
                   ),
-          
+
                   // Forgot password?
-                  Text('Forgot Password?',
-                      style: TextStyle(color: Colors.grey[600])),
-          
+                  GestureDetector(
+                    onTap: forgotPassword,
+                    child: Text('Forgot Password?',
+                        style: TextStyle(color: Colors.grey[600])),
+                  ),
+
                   const SizedBox(height: 25),
-          
+
                   // Sign in button
                   MyButton(
                     buttonText: "Sign In",
                     onTap: login,
                   ),
-          
+
                   const SizedBox(height: 50),
-          
+
                   // Or continue with
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -142,17 +177,17 @@ class _LoginPageState extends State<LoginPage> {
                       ],
                     ),
                   ),
-          
+
                   const SizedBox(height: 25),
-          
+
                   // Google + apple sign in button
                   GestureDetector(
-                    onTap: signInWithGoogle,
-                    child: const SquareTile(imagePath: 'lib/images/google.png')
-                  ),
-          
+                      onTap: signInWithGoogle,
+                      child:
+                          const SquareTile(imagePath: 'lib/images/google.png')),
+
                   const SizedBox(height: 25),
-          
+
                   // Not a user? Register now
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -176,15 +211,16 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
-          ValueListenableBuilder<bool>(valueListenable: isLoading, builder: (context, value, child) {
-            if (value) {
-              return const Center(child: CircularProgressIndicator());
-            } else {
-              return const SizedBox.shrink();
-            }
-          })
-          ]
-        ),
+          ValueListenableBuilder<bool>(
+              valueListenable: isLoading,
+              builder: (context, value, child) {
+                if (value) {
+                  return const Center(child: CircularProgressIndicator());
+                } else {
+                  return const SizedBox.shrink();
+                }
+              })
+        ]),
       ),
     );
   }
