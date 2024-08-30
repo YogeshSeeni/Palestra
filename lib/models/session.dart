@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Session {
-  final String title;
+  String title;
   final DateTime date;
   List<Map<String, dynamic>> _exercises;
   bool isTemplate;
@@ -12,6 +12,12 @@ class Session {
     List<Map<String, dynamic>>? exercises,
     this.isTemplate = false,
   }) : _exercises = exercises ?? [];
+
+  String get sessionTitle => title;
+
+  void updateTitle(String newTitle) {
+    title = newTitle;
+  }
 
   List<Map<String, dynamic>> get exercises => List.unmodifiable(_exercises);
 

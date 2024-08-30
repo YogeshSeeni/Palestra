@@ -52,17 +52,64 @@ class _SessionPageState extends State<SessionPage> {
     );
   }
 
+  void _editSessionName() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Session Name'),
+        content: TextField(
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'Enter new session name'),
+          onSubmitted: (value) {
+            if (value.isNotEmpty) {
+              setState(() {
+                widget.session.updateTitle(value);
+                widget.sessionFirestore.updateSession(widget.session, widget.sessionID);
+              });
+              Navigator.of(context).pop();
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          TextButton(
+            child: const Text('Save'),
+            onPressed: () {
+              final newName = (context.findAncestorWidgetOfExactType<AlertDialog>()?.content as TextField).controller?.text;
+              if (newName != null && newName.isNotEmpty) {
+                setState(() {
+                  widget.session.updateTitle(newName);
+                  widget.sessionFirestore.updateSession(widget.session, widget.sessionID);
+                });
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
         title: Text(
-          widget.isTemplate ? widget.session.title : widget.session.title,
+          widget.session.title,
           style: const TextStyle(fontSize: 24),
         ),
         backgroundColor: Colors.grey[200],
         scrolledUnderElevation: 0.0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: _editSessionName,
+          ),
+        ],
       ),
       body: Column(
         children: [
