@@ -1,3 +1,5 @@
+import 'package:Palestra/auth/auth.dart';
+import 'package:Palestra/auth/login_or_register.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:Palestra/components/my_button.dart';
@@ -43,6 +45,14 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
     }
   }
 
+  void logout() {
+    FirebaseAuth.instance.signOut();
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => LoginOrRegister()),
+      (Route<dynamic> route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,7 +96,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                       ),
                       const SizedBox(height: 20),
                       TextButton(
-                        onPressed: () => FirebaseAuth.instance.signOut(),
+                        onPressed: logout,
                         child: Text(
                           'Back to Login',
                           style: TextStyle(color: Colors.grey[700]),
