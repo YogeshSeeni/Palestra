@@ -118,18 +118,24 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(height: 30),
-                  MyTextField(
-                    controller: emailController,
-                    hintText: 'Email',
-                    obscureText: false,
-                    prefixIcon: Icon(Icons.email, color: Colors.grey[600]),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: MyTextField(
+                      controller: emailController,
+                      hintText: 'Email',
+                      obscureText: false,
+                      prefixIcon: Icon(Icons.email, color: Colors.grey[600]),
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  MyTextField(
-                    controller: passwordController,
-                    hintText: 'Password',
-                    obscureText: true,
-                    prefixIcon: Icon(Icons.lock, color: Colors.grey[600]),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: MyTextField(
+                      controller: passwordController,
+                      hintText: 'Password',
+                      obscureText: true,
+                      prefixIcon: Icon(Icons.lock, color: Colors.grey[600]),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   GestureDetector(
@@ -143,15 +149,18 @@ class _LoginPageState extends State<LoginPage> {
                     onTap: login,
                   ),
                   const SizedBox(height: 30),
-                  Row(
-                    children: [
-                      Expanded(child: Divider(color: Colors.grey[400])),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text('Or continue with', style: TextStyle(color: Colors.grey[600])),
-                      ),
-                      Expanded(child: Divider(color: Colors.grey[400])),
-                    ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                    child: Row(
+                      children: [
+                        Expanded(child: Divider(color: Colors.grey[400])),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text('Or continue with', style: TextStyle(color: Colors.grey[600])),
+                        ),
+                        Expanded(child: Divider(color: Colors.grey[400])),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 30),
                   GestureDetector(

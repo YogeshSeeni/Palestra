@@ -101,7 +101,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 children: [
                   const SizedBox(height: 40),
                   Image.asset('lib/images/logo_black.png', height: 180),
-                  const SizedBox(height: 40),
                   const Text(
                     'Create a new account',
                     style: TextStyle(
@@ -111,32 +110,44 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   const SizedBox(height: 30),
-                  MyTextField(
-                    controller: emailController,
-                    hintText: 'Email',
-                    obscureText: false,
-                    prefixIcon: Icon(Icons.email, color: Colors.grey[600]),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: MyTextField(
+                      controller: emailController,
+                      hintText: 'Email',
+                      obscureText: false,
+                      prefixIcon: Icon(Icons.email, color: Colors.grey[600]),
+                    ),
                   ),
                   const SizedBox(height: 10),
-                  MyTextField(
-                    controller: usernameController,
-                    hintText: 'Name',
-                    obscureText: false,
-                    prefixIcon: Icon(Icons.person, color: Colors.grey[600]),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: MyTextField(
+                      controller: usernameController,
+                      hintText: 'Name',
+                      obscureText: false,
+                      prefixIcon: Icon(Icons.person, color: Colors.grey[600]),
+                    ),
                   ),
                   const SizedBox(height: 10),
-                  MyTextField(
-                    controller: passwordController,
-                    hintText: 'Password',
-                    obscureText: true,
-                    prefixIcon: Icon(Icons.lock, color: Colors.grey[600]),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: MyTextField(
+                      controller: passwordController,
+                      hintText: 'Password',
+                      obscureText: true,
+                      prefixIcon: Icon(Icons.lock, color: Colors.grey[600]),
+                    ),
                   ),
                   const SizedBox(height: 10),
-                  MyTextField(
-                    controller: confirmController,
-                    hintText: 'Confirm Password',
-                    obscureText: true,
-                    prefixIcon: Icon(Icons.lock_outline, color: Colors.grey[600]),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: MyTextField(
+                      controller: confirmController,
+                      hintText: 'Confirm Password',
+                      obscureText: true,
+                      prefixIcon: Icon(Icons.lock_outline, color: Colors.grey[600]),
+                    ),
                   ),
                   const SizedBox(height: 25),
                   MyButton(
