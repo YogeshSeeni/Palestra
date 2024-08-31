@@ -56,8 +56,7 @@ class _LoginPageState extends State<LoginPage> {
     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
     // Obtain the auth details from the request
-    final GoogleSignInAuthentication? googleAuth =
-        await googleUser?.authentication;
+    final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
 
     // Create a new credential
     final credential = GoogleAuthProvider.credential(
@@ -91,7 +90,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[300],
+      backgroundColor: Colors.grey[200],
       body: SafeArea(
         child: Stack(children: [
           SingleChildScrollView(
@@ -99,96 +98,88 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 25),
-
-                  // logo
-                  Image.asset('lib/images/logo.png', height: 150),
-
-                  const SizedBox(height: 10),
-
-                  // "Welcome to the future of fitness."
-                  Text('Welcome to the future of fitness.',
-                      style: TextStyle(
-                        color: Colors.grey[700],
-                        fontSize: 16,
-                      )),
-
-                  const SizedBox(height: 25),
-
-                  // Username text field
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20),
-                    child: MyTextField(
-                        controller: emailController,
-                        hintText: 'Email',
-                        obscureText: false),
+                  const SizedBox(height: 40),
+                  Image.asset('lib/images/logo_black.png', height: 180),
+                  const SizedBox(height: 40),
+                  const Text(
+                    'Login to your account',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-
-                  const SizedBox(height: 10),
-
-                  // Password text field
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20),
-                    child: MyTextField(
-                        controller: passwordController,
-                        hintText: 'Password',
-                        obscureText: true),
+                  const SizedBox(height: 30),
+                  MyTextField(
+                    controller: emailController,
+                    hintText: 'Email',
+                    obscureText: false,
+                    prefixIcon: Icon(Icons.email, color: Colors.grey[600]),
                   ),
-
-                  // Forgot password?
+                  const SizedBox(height: 16),
+                  MyTextField(
+                    controller: passwordController,
+                    hintText: 'Password',
+                    obscureText: true,
+                    prefixIcon: Icon(Icons.lock, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 16),
                   GestureDetector(
                     onTap: forgotPassword,
                     child: Text('Forgot Password?',
                         style: TextStyle(color: Colors.grey[600])),
                   ),
-
-                  const SizedBox(height: 25),
-
-                  // Sign in button
+                  const SizedBox(height: 30),
                   MyButton(
                     buttonText: "Sign In",
                     onTap: login,
                   ),
-
-                  const SizedBox(height: 50),
-
-                  // Or continue with
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Divider(
-                            thickness: 0.5,
-                            color: Colors.grey[400],
+                  const SizedBox(height: 30),
+                  Row(
+                    children: [
+                      Expanded(child: Divider(color: Colors.grey[400])),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text('Or continue with', style: TextStyle(color: Colors.grey[600])),
+                      ),
+                      Expanded(child: Divider(color: Colors.grey[400])),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+                  GestureDetector(
+                    onTap: signInWithGoogle,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.2),
+                            spreadRadius: 1,
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                          child: Text('Or continue with',
-                              style: TextStyle(color: Colors.grey[700])),
-                        ),
-                        Expanded(
-                          child: Divider(
-                            thickness: 0.5,
-                            color: Colors.grey[400],
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SquareTile(imagePath: 'lib/images/google.png'),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Sign in with Google',
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        )
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-
-                  const SizedBox(height: 25),
-
-                  // Google + apple sign in button
-                  GestureDetector(
-                      onTap: signInWithGoogle,
-                      child:
-                          const SquareTile(imagePath: 'lib/images/google.png')),
-
-                  const SizedBox(height: 25),
-
-                  // Not a user? Register now
+                  const SizedBox(height: 30),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -199,11 +190,13 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(width: 4),
                       GestureDetector(
                         onTap: widget.onTap,
-                        child: const Text('Register now',
-                            style: TextStyle(
-                              color: Colors.blue,
-                              fontWeight: FontWeight.bold,
-                            )),
+                        child: const Text(
+                          'Register now',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   )
@@ -216,9 +209,8 @@ class _LoginPageState extends State<LoginPage> {
               builder: (context, value, child) {
                 if (value) {
                   return const Center(child: CircularProgressIndicator());
-                } else {
-                  return const SizedBox.shrink();
                 }
+                return const SizedBox.shrink();
               })
         ]),
       ),

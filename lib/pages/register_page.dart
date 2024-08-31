@@ -45,13 +45,13 @@ class _RegisterPageState extends State<RegisterPage> {
           .createUserWithEmailAndPassword(
               email: emailController.text, password: passwordController.text);
 
-    // Send email verification
-    await userCredential.user?.sendEmailVerification();
-    // Update display name
+      // Send email verification
+      await userCredential.user?.sendEmailVerification();
+      // Update display name
       await userCredential.user?.updateDisplayName(usernameController.text);
 
-    // Show a message to the user
-    displayMessage("Verification email sent. Please check your inbox.", context);
+      // Show a message to the user
+      displayMessage("Verification email sent. Please check your inbox.", context);
     } on FirebaseAuthException catch (e) {
       // Display error message
       displayMessage(e.message ?? 'An error occurred', context);
@@ -84,7 +84,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[300],
+      backgroundColor: Colors.grey[200],
       body: SafeArea(
         child: Stack(children: [
           SingleChildScrollView(
@@ -92,102 +92,99 @@ class _RegisterPageState extends State<RegisterPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const SizedBox(height: 40),
+                  Image.asset('lib/images/logo_black.png', height: 180),
+                  const SizedBox(height: 40),
+                  const Text(
+                    'Create a new account',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  MyTextField(
+                    controller: emailController,
+                    hintText: 'Email',
+                    obscureText: false,
+                    prefixIcon: Icon(Icons.email, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 10),
+                  MyTextField(
+                    controller: usernameController,
+                    hintText: 'Name',
+                    obscureText: false,
+                    prefixIcon: Icon(Icons.person, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 10),
+                  MyTextField(
+                    controller: passwordController,
+                    hintText: 'Password',
+                    obscureText: true,
+                    prefixIcon: Icon(Icons.lock, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 10),
+                  MyTextField(
+                    controller: confirmController,
+                    hintText: 'Confirm Password',
+                    obscureText: true,
+                    prefixIcon: Icon(Icons.lock_outline, color: Colors.grey[600]),
+                  ),
                   const SizedBox(height: 25),
-
-                  // logo
-                  Image.asset('lib/images/logo.png', height: 150),
-
-                  const SizedBox(height: 10),
-
-                  // Email text field
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20),
-                    child: MyTextField(
-                        controller: emailController,
-                        hintText: 'Email',
-                        obscureText: false),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  // Username text field
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20),
-                    child: MyTextField(
-                        controller: usernameController,
-                        hintText: 'Name',
-                        obscureText: false),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  // Password text field
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20),
-                    child: MyTextField(
-                        controller: passwordController,
-                        hintText: 'Password',
-                        obscureText: true),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  // Confirm password text field
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20),
-                    child: MyTextField(
-                        controller: confirmController,
-                        hintText: 'Confirm Password',
-                        obscureText: true),
-                  ),
-
-                  const SizedBox(height: 25),
-
-                  // Register button
                   MyButton(
-                    buttonText: "Register",
                     onTap: register,
+                    buttonText: "Register",
                   ),
-
                   const SizedBox(height: 25),
-
-                  // Or continue with
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 25.0),
                     child: Row(
                       children: [
-                        Expanded(
-                          child: Divider(
-                            thickness: 0.5,
-                            color: Colors.grey[400],
-                          ),
-                        ),
+                        Expanded(child: Divider(color: Colors.grey[400])),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                          child: Text('Or continue with',
-                              style: TextStyle(color: Colors.grey[700])),
+                          child: Text('Or continue with', style: TextStyle(color: Colors.grey[700])),
                         ),
-                        Expanded(
-                          child: Divider(
-                            thickness: 0.5,
-                            color: Colors.grey[400],
-                          ),
-                        )
+                        Expanded(child: Divider(color: Colors.grey[400])),
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 25),
-
-                  // Google + apple sign in button
                   GestureDetector(
                     onTap: signInWithGoogle,
-                    child: const SquareTile(imagePath: 'lib/images/google.png')
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.2),
+                            spreadRadius: 1,
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SquareTile(imagePath: 'lib/images/google.png'),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Sign up with Google',
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-
                   const SizedBox(height: 25),
-
-                  // Not a user? Register now
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -198,7 +195,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       const SizedBox(width: 4),
                       GestureDetector(
                         onTap: widget.onTap,
-                        child: const Text('Login Here',
+                        child: const Text('Login here',
                             style: TextStyle(
                               color: Colors.blue,
                               fontWeight: FontWeight.bold,

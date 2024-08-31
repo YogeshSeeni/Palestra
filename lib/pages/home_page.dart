@@ -9,6 +9,7 @@ import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:get/get.dart';
 import 'package:Palestra/pages/goals_page.dart';
 import 'package:intl/intl.dart';
+import 'package:Palestra/auth/auth.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -130,6 +131,10 @@ class _HomePageState extends State<HomePage> {
 
   void logout() {
     FirebaseAuth.instance.signOut();
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => AuthPage()),
+      (Route<dynamic> route) => false,
+    );
   }
 
   void deleteSession(String sessionId) {
