@@ -1,6 +1,6 @@
-import 'package:Palestra/auth/login_or_register.dart';
 import 'package:Palestra/pages/home_page.dart';
 import 'package:Palestra/pages/email_verification_page.dart'; // Add this import
+import 'package:Palestra/pages/landing_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -22,7 +22,7 @@ class AuthPage extends StatelessWidget {
               return EmailVerificationPage();
           }
           } else {
-            return const LoginOrRegister();
+            return const LandingPage();
         }
   }
       ),
