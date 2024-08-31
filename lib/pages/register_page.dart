@@ -2,6 +2,8 @@ import 'package:Palestra/components/my_button.dart';
 import 'package:Palestra/components/my_textfield.dart';
 import 'package:Palestra/components/square_tile.dart';
 import 'package:Palestra/helper/helper_functions.dart';
+import 'package:Palestra/pages/email_verification_page.dart';
+import 'package:Palestra/pages/home_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -50,8 +52,9 @@ class _RegisterPageState extends State<RegisterPage> {
       // Update display name
       await userCredential.user?.updateDisplayName(usernameController.text);
 
-      // Show a message to the user
-      displayMessage("Verification email sent. Please check your inbox.", context);
+      Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => EmailVerificationPage()),
+    );
     } on FirebaseAuthException catch (e) {
       // Display error message
       displayMessage(e.message ?? 'An error occurred', context);
@@ -79,6 +82,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
     // Once signed in, return the UserCredential
     await FirebaseAuth.instance.signInWithCredential(credential);
+
+    Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => HomePage()),
+    );
   }
 
   @override
