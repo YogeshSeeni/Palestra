@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:Palestra/pages/home_page.dart';
 
 class GoalsPage extends StatefulWidget {
   final bool isInitialSetup;
@@ -43,6 +44,8 @@ class _GoalsPageState extends State<GoalsPage> {
 
   bool _isFormValid = false;
 
+  final ValueNotifier<bool> isLoading = ValueNotifier(false);
+
   @override
   void initState() {
     super.initState();
@@ -64,8 +67,14 @@ class _GoalsPageState extends State<GoalsPage> {
   void _validateForm() {
     setState(() {
       _isFormValid = _weightController.text.isNotEmpty &&
-          _selectedGoals.isNotEmpty &&
-          (_selectedGoals.contains('Sport Specific') ? _sportController.text.isNotEmpty : true);
+          (_selectedGoals.contains('Sport Specific')
+              ? _sportController.text.isNotEmpty
+              : true) &&
+          _selectedFeet > 0 &&
+          _selectedInches >= 0 &&
+          _selectedYear > 0 &&
+          _workoutDaysPerWeek > 0 &&
+          _workoutTimePerDay > 0;
     });
   }
 
@@ -73,27 +82,34 @@ class _GoalsPageState extends State<GoalsPage> {
     User? user = _auth.currentUser;
     if (user != null) {
       try {
-        DocumentSnapshot doc = await _firestore.collection('users').doc(user.uid).get();
+        DocumentSnapshot doc =
+            await _firestore.collection('users').doc(user.uid).get();
         if (doc.exists) {
           Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
           if (data.containsKey('fitnessProfile')) {
             setState(() {
               _selectedFeet = data['fitnessProfile']['height']['feet'] ?? 5;
               _selectedInches = data['fitnessProfile']['height']['inches'] ?? 0;
-              _weightController.text = (data['fitnessProfile']['weight'] ?? '').toString();
-              _selectedYear = data['fitnessProfile']['yearStarted'] ?? DateTime.now().year;
-              _selectedGoals = List<String>.from(data['fitnessProfile']['fitnessGoals'] ?? []);
-              _workoutDaysPerWeek = data['fitnessProfile']['workoutDaysPerWeek'] ?? 3;
-              _workoutTimePerDay = data['fitnessProfile']['workoutTimePerDay'] ?? 60;
+              _weightController.text =
+                  (data['fitnessProfile']['weight'] ?? '').toString();
+              _selectedYear =
+                  data['fitnessProfile']['yearStarted'] ?? DateTime.now().year;
+              _selectedGoals = List<String>.from(
+                  data['fitnessProfile']['fitnessGoals'] ?? []);
+              _workoutDaysPerWeek =
+                  data['fitnessProfile']['workoutDaysPerWeek'] ?? 3;
+              _workoutTimePerDay =
+                  data['fitnessProfile']['workoutTimePerDay'] ?? 60;
               _gymAccess = data['fitnessProfile']['gymAccess'] ?? 'Full';
-              _specialCondition = data['fitnessProfile']['specialCondition'] ?? 'None';
+              _specialCondition =
+                  data['fitnessProfile']['specialCondition'] ?? 'None';
               _sportController.text = data['fitnessProfile']['sport'] ?? '';
-              _selectedBodyParts = List<String>.from(data['fitnessProfile']['bodyPartsToTrain'] ?? []);
+              _selectedBodyParts = List<String>.from(
+                  data['fitnessProfile']['bodyPartsToTrain'] ?? []);
             });
           }
         }
-      } catch (e) {
-      }
+      } catch (e) {}
     }
   }
 
@@ -116,19 +132,20 @@ class _GoalsPageState extends State<GoalsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Biometrics', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text('Biometrics',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
               _buildHeightDropdowns(),
               const SizedBox(height: 10),
               _buildWeightTextField(),
               const SizedBox(height: 20),
-
-              const Text('Experience', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text('Experience',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
               _buildYearStartedDropdown(),
               const SizedBox(height: 20),
-
-              const Text('Workout Plan', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text('Workout Plan',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
               _buildWorkoutDaysDropdown(),
               const SizedBox(height: 10),
@@ -136,28 +153,38 @@ class _GoalsPageState extends State<GoalsPage> {
               const SizedBox(height: 10),
               _buildGymAccessDropdown(),
               const SizedBox(height: 20),
-
-              const Text('Special Conditions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text('Special Conditions',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
               _buildSpecialConditionDropdown(),
               const SizedBox(height: 20),
-
-              const Text('Fitness Goals', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text('Fitness Goals',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
               _buildGoalsMultiSelect(),
               const SizedBox(height: 20),
-
               Center(
                 child: Column(
                   children: [
-                    ElevatedButton(
-                      onPressed: _isFormValid ? _saveProfile : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _isFormValid ? Colors.black : Colors.grey,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                      ),
-                      child: const Text('Save Profile'),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: isLoading,
+                      builder: (context, isLoading, child) {
+                        return ElevatedButton(
+                          onPressed: isLoading
+                              ? null
+                              : (_isFormValid ? _saveProfile : null),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                _isFormValid ? Colors.black : Colors.grey,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 50, vertical: 15),
+                          ),
+                          child: isLoading
+                              ? CircularProgressIndicator(color: Colors.white)
+                              : const Text('Save Profile'),
+                        );
+                      },
                     ),
                     if (!_isFormValid)
                       const Padding(
@@ -199,7 +226,8 @@ class _GoalsPageState extends State<GoalsPage> {
             decoration: const InputDecoration(
               labelText: 'Feet',
               border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 10, vertical: 15),
             ),
           ),
         ),
@@ -222,7 +250,8 @@ class _GoalsPageState extends State<GoalsPage> {
             decoration: const InputDecoration(
               labelText: 'Inches',
               border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 10, vertical: 15),
             ),
           ),
         ),
@@ -315,7 +344,8 @@ class _GoalsPageState extends State<GoalsPage> {
   Widget _buildGymAccessDropdown() {
     return DropdownButtonFormField<String>(
       value: _gymAccess,
-      items: ['Full', 'Limited', 'Home Equipment', 'No Equipment'].map((String value) {
+      items: ['Full', 'Limited', 'Home Equipment', 'No Equipment']
+          .map((String value) {
         return DropdownMenuItem<String>(
           value: value,
           child: Text(value),
@@ -338,7 +368,8 @@ class _GoalsPageState extends State<GoalsPage> {
   Widget _buildSpecialConditionDropdown() {
     return DropdownButtonFormField<String>(
       value: _specialCondition,
-      items: ['None', 'Pregnancy', 'Disability', 'Amputee', 'Other'].map((String value) {
+      items: ['None', 'Pregnancy', 'Disability', 'Amputee', 'Other']
+          .map((String value) {
         return DropdownMenuItem<String>(
           value: value,
           child: Text(value),
@@ -417,28 +448,45 @@ class _GoalsPageState extends State<GoalsPage> {
     User? user = _auth.currentUser;
     if (user != null) {
       try {
-        await _firestore.collection('users').doc(user.uid).set({
-          'fitnessProfile': {
-            'height': {
-              'feet': _selectedFeet,
-              'inches': _selectedInches,
-            },
-            'weight': int.tryParse(_weightController.text) ?? 0,
-            'yearStarted': _selectedYear,
-            'fitnessGoals': _selectedGoals,
-            'workoutDaysPerWeek': _workoutDaysPerWeek,
-            'workoutTimePerDay': _workoutTimePerDay,
-            'gymAccess': _gymAccess,
-            'specialCondition': _specialCondition,
-            'sport': _sportController.text,
-            'bodyPartsToTrain': _selectedBodyParts,
-          }
-        }, SetOptions(merge: true));
-        
+        isLoading.value = true;
+
+        // Prepare the fitness profile data
+        Map<String, dynamic> fitnessProfile = {
+          'height': {
+            'feet': _selectedFeet,
+            'inches': _selectedInches,
+          },
+          'weight': int.tryParse(_weightController.text) ?? 0,
+          'yearStarted': _selectedYear,
+          'fitnessGoals': _selectedGoals,
+          'workoutDaysPerWeek': _workoutDaysPerWeek,
+          'workoutTimePerDay': _workoutTimePerDay,
+          'gymAccess': _gymAccess,
+          'specialCondition': _specialCondition,
+          'sport': _sportController.text,
+          'bodyPartsToTrain': _selectedBodyParts,
+        };
+
+        // Get a reference to the user's document
+        DocumentReference userDoc =
+            _firestore.collection('users').doc(user.uid);
+
+        // Check if the document exists
+        DocumentSnapshot docSnapshot = await userDoc.get();
+
+        if (docSnapshot.exists) {
+          // Update existing document
+          await userDoc.update({'fitnessProfile': fitnessProfile});
+        } else {
+          // Create new document
+          await userDoc.set({'fitnessProfile': fitnessProfile});
+        }
+
         if (widget.isInitialSetup) {
           // Navigate to the next page in the initial setup flow
           // Replace this with the appropriate navigation logic
-          // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => NextPage()));
+          Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => HomePage()));
         } else {
           Navigator.of(context).pop();
         }
@@ -447,6 +495,8 @@ class _GoalsPageState extends State<GoalsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error saving profile: ${e.toString()}')),
         );
+      } finally {
+        isLoading.value = false;
       }
     }
   }
