@@ -45,13 +45,13 @@ class _RegisterPageState extends State<RegisterPage> {
           .createUserWithEmailAndPassword(
               email: emailController.text, password: passwordController.text);
 
-    // Send email verification
-    await userCredential.user?.sendEmailVerification();
-    // Update display name
+      // Send email verification
+      await userCredential.user?.sendEmailVerification();
+      // Update display name
       await userCredential.user?.updateDisplayName(usernameController.text);
 
-    // Show a message to the user
-    displayMessage("Verification email sent. Please check your inbox.", context);
+      // Show a message to the user
+      displayMessage("Verification email sent. Please check your inbox.", context);
     } on FirebaseAuthException catch (e) {
       // Display error message
       displayMessage(e.message ?? 'An error occurred', context);
@@ -84,7 +84,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[300],
+      backgroundColor: Colors.grey[200],
       body: SafeArea(
         child: Stack(children: [
           SingleChildScrollView(
@@ -93,9 +93,9 @@ class _RegisterPageState extends State<RegisterPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(height: 40),
-                  Image.asset('lib/images/logo.png', height: 180), // Increased height
+                  Image.asset('lib/images/logo_black.png', height: 180),
                   const SizedBox(height: 40),
-                  Text(
+                  const Text(
                     'Create a new account',
                     style: TextStyle(
                       color: Colors.black,
@@ -137,28 +137,16 @@ class _RegisterPageState extends State<RegisterPage> {
                     buttonText: "Register",
                   ),
                   const SizedBox(height: 25),
-                  // Or continue with
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 25.0),
                     child: Row(
                       children: [
-                        Expanded(
-                          child: Divider(
-                            thickness: 0.5,
-                            color: Colors.grey[400],
-                          ),
-                        ),
+                        Expanded(child: Divider(color: Colors.grey[400])),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                          child: Text('Or continue with',
-                              style: TextStyle(color: Colors.grey[700])),
+                          child: Text('Or continue with', style: TextStyle(color: Colors.grey[700])),
                         ),
-                        Expanded(
-                          child: Divider(
-                            thickness: 0.5,
-                            color: Colors.grey[400],
-                          ),
-                        )
+                        Expanded(child: Divider(color: Colors.grey[400])),
                       ],
                     ),
                   ),

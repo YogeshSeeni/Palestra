@@ -89,131 +89,129 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[300],
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.grey[300]!, Colors.grey[200]!],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 40),
-                    Image.asset('lib/images/logo_black.png', height: 180), // Increased height
-                    const SizedBox(height: 40),
-                    const Text(
-                      'Login to your account',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+      backgroundColor: Colors.grey[200],
+      body: SafeArea(
+        child: Stack(children: [
+          SingleChildScrollView(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 40),
+                  Image.asset('lib/images/logo_black.png', height: 180),
+                  const SizedBox(height: 40),
+                  const Text(
+                    'Login to your account',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  MyTextField(
+                    controller: emailController,
+                    hintText: 'Email',
+                    obscureText: false,
+                    prefixIcon: Icon(Icons.email, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 16),
+                  MyTextField(
+                    controller: passwordController,
+                    hintText: 'Password',
+                    obscureText: true,
+                    prefixIcon: Icon(Icons.lock, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 16),
+                  GestureDetector(
+                    onTap: forgotPassword,
+                    child: Text('Forgot Password?',
+                        style: TextStyle(color: Colors.grey[600])),
+                  ),
+                  const SizedBox(height: 30),
+                  MyButton(
+                    buttonText: "Sign In",
+                    onTap: login,
+                  ),
+                  const SizedBox(height: 30),
+                  Row(
+                    children: [
+                      Expanded(child: Divider(color: Colors.grey[400])),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text('Or continue with', style: TextStyle(color: Colors.grey[600])),
                       ),
-                    ),
-                    const SizedBox(height: 30),
-                    MyTextField(
-                      controller: emailController,
-                      hintText: 'Email',
-                      obscureText: false,
-                      prefixIcon: Icon(Icons.email, color: Colors.grey[600]),
-                    ),
-                    const SizedBox(height: 16),
-                    MyTextField(
-                      controller: passwordController,
-                      hintText: 'Password',
-                      obscureText: true,
-                      prefixIcon: Icon(Icons.lock, color: Colors.grey[600]),
-                    ),
-                    const SizedBox(height: 16),
-                    GestureDetector(
-                      onTap: forgotPassword,
-                      child: Text('Forgot Password?',
-                          style: TextStyle(color: Colors.grey[600])),
-                    ),
-                    const SizedBox(height: 30),
-                    MyButton(
-                      buttonText: "Sign In",
-                      onTap: login,
-                    ),
-                    const SizedBox(height: 30),
-                    Row(
-                      children: [
-                        Expanded(child: Divider(color: Colors.grey[400])),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text('Or continue with', style: TextStyle(color: Colors.grey[600])),
-                        ),
-                        Expanded(child: Divider(color: Colors.grey[400])),
-                      ],
-                    ),
-                    const SizedBox(height: 30),
-                    GestureDetector(
-                      onTap: signInWithGoogle,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.2),
-                              spreadRadius: 1,
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const SquareTile(imagePath: 'lib/images/google.png'),
-                            const SizedBox(width: 10),
-                            Text(
-                              'Sign in with Google',
-                              style: TextStyle(
-                                color: Colors.grey[700],
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
+                      Expanded(child: Divider(color: Colors.grey[400])),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+                  GestureDetector(
+                    onTap: signInWithGoogle,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.2),
+                            spreadRadius: 1,
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 30),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Not a member?',
-                          style: TextStyle(color: Colors.grey[700]),
-                        ),
-                        const SizedBox(width: 4),
-                        GestureDetector(
-                          onTap: widget.onTap,
-                          child: const Text(
-                            'Register now',
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SquareTile(imagePath: 'lib/images/google.png'),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Sign in with Google',
                             style: TextStyle(
-                              color: Colors.blue,
+                              color: Colors.grey[700],
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Not a member?',
+                        style: TextStyle(color: Colors.grey[700]),
+                      ),
+                      const SizedBox(width: 4),
+                      GestureDetector(
+                        onTap: widget.onTap,
+                        child: const Text(
+                          'Register now',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ],
-                    )
-                  ],
-                ),
+                      ),
+                    ],
+                  )
+                ],
               ),
             ),
           ),
-        ),
+          ValueListenableBuilder<bool>(
+              valueListenable: isLoading,
+              builder: (context, value, child) {
+                if (value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                return const SizedBox.shrink();
+              })
+        ]),
       ),
     );
   }
