@@ -40,6 +40,7 @@ class _ProfilePageState extends State<ProfilePage> {
     'Weight Management'
   ];
   List<String> _selectedGoals = [];
+  List<String> _initialGoals = [];
   List<String> _selectedBodyParts = [];
 
   bool _isFormValid = false;
@@ -49,7 +50,9 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    _fetchUserData();
+    _fetchUserData().then((_) {
+      _validateForm();
+    });
     // Add listeners to all form fields
     _weightController.addListener(_validateForm);
     _sportController.addListener(_validateForm);
@@ -66,7 +69,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _validateForm() {
     setState(() {
+      bool goalsValid = _selectedGoals.isNotEmpty || _initialGoals.isNotEmpty;
       _isFormValid = _weightController.text.isNotEmpty &&
+          goalsValid &&
           (_selectedGoals.contains('Sport Specific')
               ? _sportController.text.isNotEmpty
               : true) &&
@@ -96,6 +101,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   data['fitnessProfile']['yearStarted'] ?? DateTime.now().year;
               _selectedGoals = List<String>.from(
                   data['fitnessProfile']['fitnessGoals'] ?? []);
+              _initialGoals = List<String>.from(_selectedGoals);
               _workoutDaysPerWeek =
                   data['fitnessProfile']['workoutDaysPerWeek'] ?? 3;
               _workoutTimePerDay =

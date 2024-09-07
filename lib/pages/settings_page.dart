@@ -1,9 +1,9 @@
-import 'package:Palestra/pages/landing_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:Palestra/auth/auth.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:Palestra/components/my_textfield.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -35,6 +35,36 @@ class SettingsPage extends StatelessWidget {
                 try {
                   User? user = FirebaseAuth.instance.currentUser;
                   if (user != null) {
+                    // Check the user's provider data
+                    var providers = user.providerData.map((e) => e.providerId).toList();
+                    
+                    if (providers.contains('google.com')) {
+                      // For Google Sign-In users
+                      final GoogleSignIn googleSignIn = GoogleSignIn();
+                      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+                      if (googleUser != null) {
+                        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+                        final credential = GoogleAuthProvider.credential(
+                          accessToken: googleAuth.accessToken,
+                          idToken: googleAuth.idToken,
+                        );
+                        await user.reauthenticateWithCredential(credential);
+                      } else {
+                        throw Exception('Google Sign-In failed');
+                      }
+                    } else {
+                      // For email/password users
+                      String password = await _getPassword(context);
+                      if (password.isEmpty) {
+                        throw Exception('Password is required');
+                      }
+                      AuthCredential credential = EmailAuthProvider.credential(
+                        email: user.email!,
+                        password: password,
+                      );
+                      await user.reauthenticateWithCredential(credential);
+                    }
+
                     print('Starting account deletion process for user: ${user.uid}');
                     
                     // Delete user data from Firestore
@@ -47,12 +77,9 @@ class SettingsPage extends StatelessWidget {
                     await user.delete();
                     print('User authentication account deleted successfully');
                     
-                    // Sign out
-                    print('Logging out...');
+                    // Sign out and navigate
+                    print('Logging out and navigating...');
                     await FirebaseAuth.instance.signOut();
-                    
-                    // Navigate to AuthPage
-                    print('Navigating...');
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(builder: (context) => AuthPage()),
                       (Route<dynamic> route) => false,
@@ -62,6 +89,9 @@ class SettingsPage extends StatelessWidget {
                   }
                 } catch (e) {
                   print('Error during account deletion: $e');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to delete account: $e')),
+                  );
                 }
               },
             ),
@@ -69,6 +99,67 @@ class SettingsPage extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<String> _getPassword(BuildContext context) async {
+    final passwordController = TextEditingController();
+    bool? result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.grey[200],
+          title: Text(
+            'Confirm Password',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Please enter your password to confirm account deletion.',
+                style: TextStyle(color: Colors.grey[700], fontSize: 16),
+              ),
+              SizedBox(height: 20),
+              MyTextField(
+                controller: passwordController,
+                hintText: 'Password',
+                obscureText: true,
+                prefixIcon: Icon(Icons.lock, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Colors.grey[700]),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            TextButton(
+              child: Text(
+                'Confirm',
+                style: TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    return result == true ? passwordController.text : '';
   }
 
   @override
