@@ -3,16 +3,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:Palestra/pages/home_page.dart';
 
-class GoalsPage extends StatefulWidget {
+class ProfilePage extends StatefulWidget {
   final bool isInitialSetup;
 
-  const GoalsPage({super.key, this.isInitialSetup = false});
+  const ProfilePage({super.key, this.isInitialSetup = false});
 
   @override
-  _GoalsPageState createState() => _GoalsPageState();
+  _ProfilePageState createState() => _ProfilePageState();
 }
 
-class _GoalsPageState extends State<GoalsPage> {
+class _ProfilePageState extends State<ProfilePage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 

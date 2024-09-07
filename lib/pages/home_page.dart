@@ -7,9 +7,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:get/get.dart';
-import 'package:Palestra/pages/goals_page.dart';
+import 'package:Palestra/pages/profile_page.dart';
 import 'package:intl/intl.dart';
-import 'package:Palestra/auth/auth.dart';
+import 'package:Palestra/pages/settings_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -66,7 +66,7 @@ class _HomePageState extends State<HomePage> {
           userData == null ||
           !userData.containsKey('fitnessProfile')) {
         Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => const GoalsPage(isInitialSetup: true),
+          builder: (context) => const ProfilePage(isInitialSetup: true),
         ));
       }
     }
@@ -127,14 +127,6 @@ class _HomePageState extends State<HomePage> {
 
   void clear() {
     newSessionNameController.clear();
-  }
-
-  void logout() {
-    FirebaseAuth.instance.signOut();
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => AuthPage()),
-      (Route<dynamic> route) => false,
-    );
   }
 
   void deleteSession(String sessionId) {
@@ -690,26 +682,30 @@ class _HomePageState extends State<HomePage> {
         Get.put(BottomNavigationBarController());
     return Scaffold(
       appBar: AppBar(
-          leading: IconButton(
+        leading: IconButton(
+          icon: const Icon(Icons.person),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ProfilePage()),
+          ),
+        ),
+        title: const Text(
+          "Palestra",
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const GoalsPage()),
+              MaterialPageRoute(builder: (context) => const SettingsPage()),
             ),
           ),
-          title: const Text(
-            "Palestra",
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          centerTitle: true,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: logout,
-            ),
-          ],
-          backgroundColor: Colors.grey[200],
-          scrolledUnderElevation: 0.0),
+        ],
+        backgroundColor: Colors.grey[200],
+        scrolledUnderElevation: 0.0
+      ),
       backgroundColor: Colors.grey[200],
       body: Obx(() {
         if (controller.index.value == 1) {
