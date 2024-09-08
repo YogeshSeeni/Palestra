@@ -7,6 +7,12 @@ import 'package:Palestra/pages/home_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:crypto/crypto.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class RegisterPage extends StatefulWidget {
   final void Function()? onTap;
@@ -53,8 +59,8 @@ class _RegisterPageState extends State<RegisterPage> {
       await userCredential.user?.updateDisplayName(usernameController.text);
 
       Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => EmailVerificationPage()),
-    );
+        MaterialPageRoute(builder: (context) => EmailVerificationPage()),
+      );
     } on FirebaseAuthException catch (e) {
       // Display error message
       displayMessage(e.message ?? 'An error occurred', context);
@@ -84,7 +90,54 @@ class _RegisterPageState extends State<RegisterPage> {
     await FirebaseAuth.instance.signInWithCredential(credential);
 
     Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => HomePage()),
+      MaterialPageRoute(builder: (context) => HomePage()),
+    );
+  }
+
+  String generateNonce([int length = 32]) {
+    final charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)])
+        .join();
+  }
+
+  /// Returns the sha256 hash of [input] in hex notation.
+  String sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
+  void signInWithApple() async {
+    // To prevent replay attacks with the credential returned from Apple, we
+    // include a nonce in the credential request. When signing in with
+    // Firebase, the nonce in the id token returned by Apple, is expected to
+    // match the sha256 hash of `rawNonce`.
+    final rawNonce = generateNonce();
+    final nonce = sha256ofString(rawNonce);
+
+    // Request credential for the currently signed in Apple account.
+    final appleCredential = await SignInWithApple.getAppleIDCredential(
+      scopes: [
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName,
+      ],
+      nonce: nonce,
+    );
+
+    // Create an `OAuthCredential` from the credential returned by Apple.
+    final oauthCredential = OAuthProvider("apple.com").credential(
+      idToken: appleCredential.identityToken,
+      rawNonce: rawNonce,
+    );
+
+    // Sign in the user with Firebase. If the nonce we generated earlier does
+    // not match the nonce in `appleCredential.identityToken`, sign in will fail.
+    await FirebaseAuth.instance.signInWithCredential(oauthCredential);
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => HomePage()),
     );
   }
 
@@ -146,7 +199,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       controller: confirmController,
                       hintText: 'Confirm Password',
                       obscureText: true,
-                      prefixIcon: Icon(Icons.lock_outline, color: Colors.grey[600]),
+                      prefixIcon:
+                          Icon(Icons.lock_outline, color: Colors.grey[600]),
                     ),
                   ),
                   const SizedBox(height: 25),
@@ -162,7 +216,8 @@ class _RegisterPageState extends State<RegisterPage> {
                         Expanded(child: Divider(color: Colors.grey[400])),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                          child: Text('Or continue with', style: TextStyle(color: Colors.grey[700])),
+                          child: Text('Or continue with',
+                              style: TextStyle(color: Colors.grey[700])),
                         ),
                         Expanded(child: Divider(color: Colors.grey[400])),
                       ],
@@ -172,7 +227,8 @@ class _RegisterPageState extends State<RegisterPage> {
                   GestureDetector(
                     onTap: signInWithGoogle,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
                         color: Colors.white,
@@ -203,6 +259,41 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   const SizedBox(height: 25),
+                  GestureDetector(
+                    onTap: signInWithApple,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.2),
+                            spreadRadius: 1,
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SquareTile(imagePath: 'lib/images/apple.png'),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Sign up with Apple',
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 25),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -215,7 +306,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         onTap: widget.onTap,
                         child: const Text('Login here',
                             style: TextStyle(
-                            color: Colors.blue,
+                              color: Colors.blue,
                               fontWeight: FontWeight.bold,
                             )),
                       ),
@@ -238,4 +329,3 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 }
-

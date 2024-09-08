@@ -7,9 +7,53 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:483909118448:android:4743db680770ba007c5535",
+        "mobilesdk_app_id": "1:483909118448:android:4fcfb952852ed8e87c5535",
         "android_client_info": {
           "package_name": "com.example.palestra"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "483909118448-5b52qvb63mq50o5lv45j3enhus61rg9v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.palestra",
+            "certificate_hash": "cef3d48705ac41c901c675cb2504de6dc3054326"
+          }
+        },
+        {
+          "client_id": "483909118448-9rbnsf26klkeugdudpsj0o0510poriqg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCIBvtLqjR2ReMzjzq8nRCHI-7OMXbClQ4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "483909118448-9rbnsf26klkeugdudpsj0o0510poriqg.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "483909118448-8cldr5rg7096nd4n80qpe380vnb045go.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.trainpalestra.palestra"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:483909118448:android:e4317c4e155130e77c5535",
+        "android_client_info": {
+          "package_name": "com.trainpalestra.palestra"
         }
       },
       "oauth_client": [
@@ -29,6 +73,13 @@
             {
               "client_id": "483909118448-9rbnsf26klkeugdudpsj0o0510poriqg.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "483909118448-8cldr5rg7096nd4n80qpe380vnb045go.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.trainpalestra.palestra"
+              }
             }
           ]
         }

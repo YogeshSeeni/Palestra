@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCIBvtLqjR2ReMzjzq8nRCHI-7OMXbClQ4',
-    appId: '1:483909118448:android:4743db680770ba007c5535',
+    appId: '1:483909118448:android:e4317c4e155130e77c5535',
     messagingSenderId: '483909118448',
     projectId: 'palestra-fitness-955cc',
     storageBucket: 'palestra-fitness-955cc.appspot.com',
@@ -59,11 +59,13 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAtoRN1NFzXt0Sh6LYJ3_-y5tfm3pa7UAE',
-    appId: '1:483909118448:ios:138a7d26a1d845ba7c5535',
+    appId: '1:483909118448:ios:849458b471e849067c5535',
     messagingSenderId: '483909118448',
     projectId: 'palestra-fitness-955cc',
     storageBucket: 'palestra-fitness-955cc.appspot.com',
-    iosClientId: '483909118448-iapt9hjful3lckj6lpsppjcnpdso9cbp.apps.googleusercontent.com',
-    iosBundleId: 'com.example.palestra',
+    androidClientId: '483909118448-5b52qvb63mq50o5lv45j3enhus61rg9v.apps.googleusercontent.com',
+    iosClientId: '483909118448-8cldr5rg7096nd4n80qpe380vnb045go.apps.googleusercontent.com',
+    iosBundleId: 'com.trainpalestra.palestra',
   );
+
 }
