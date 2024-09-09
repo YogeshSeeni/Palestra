@@ -4,6 +4,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:Palestra/auth/auth.dart';
 import 'package:Palestra/components/my_textfield.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
+import 'dart:math';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -14,6 +18,18 @@ class SettingsPage extends StatelessWidget {
       MaterialPageRoute(builder: (context) => AuthPage()),
       (Route<dynamic> route) => false,
     );
+  }
+
+  String generateNonce([int length = 32]) {
+    final charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
+  }
+
+  String sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
   }
 
   void deleteAccount(BuildContext context) {
@@ -38,7 +54,26 @@ class SettingsPage extends StatelessWidget {
                     // Check the user's provider data
                     var providers = user.providerData.map((e) => e.providerId).toList();
                     
-                    if (providers.contains('google.com')) {
+                    if (providers.contains('apple.com')) {
+                      // For Apple Sign-In users
+                      final rawNonce = generateNonce();
+                      final nonce = sha256ofString(rawNonce);
+
+                      final appleCredential = await SignInWithApple.getAppleIDCredential(
+                        scopes: [
+                          AppleIDAuthorizationScopes.email,
+                          AppleIDAuthorizationScopes.fullName,
+                        ],
+                        nonce: nonce,
+                      );
+
+                      final oauthCredential = OAuthProvider("apple.com").credential(
+                        idToken: appleCredential.identityToken,
+                        rawNonce: rawNonce,
+                      );
+
+                      await user.reauthenticateWithCredential(oauthCredential);
+                    } else if (providers.contains('google.com')) {
                       // For Google Sign-In users
                       final GoogleSignIn googleSignIn = GoogleSignIn();
                       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();

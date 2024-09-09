@@ -712,18 +712,21 @@ class _HomePageState extends State<HomePage> {
           return SingleChildScrollView(
             child: Column(
               children: [
-                if (currentUser?.displayName != null)
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Container(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Let's work, ${currentUser?.displayName}.",
-                        style: const TextStyle(
-                            fontSize: 35, fontWeight: FontWeight.bold),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Container(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      currentUser?.displayName != null
+                          ? "Let's work, ${currentUser!.displayName}."
+                          : "Start Workout",
+                      style: const TextStyle(
+                        fontSize: 35,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
+                ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: ElevatedButton(

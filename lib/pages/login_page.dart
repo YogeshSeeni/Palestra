@@ -1,12 +1,15 @@
 import 'package:Palestra/components/my_button.dart';
 import 'package:Palestra/components/my_textfield.dart';
-import 'package:Palestra/components/square_tile.dart';
 import 'package:Palestra/helper/helper_functions.dart';
 import 'package:Palestra/pages/email_verification_page.dart';
 import 'package:Palestra/pages/home_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'dart:convert';
+import 'dart:math';
+import 'package:crypto/crypto.dart';
 
 class LoginPage extends StatefulWidget {
   final void Function()? onTap;
@@ -37,7 +40,6 @@ class _LoginPageState extends State<LoginPage> {
 
       if (userCredential.user != null) {
         if (!userCredential.user!.emailVerified) {
-          // Instead of showing a message, navigate to the EmailVerificationPage
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => EmailVerificationPage()),
           );
@@ -46,7 +48,6 @@ class _LoginPageState extends State<LoginPage> {
             MaterialPageRoute(builder: (context) => HomePage()),
           );
         }
-        // If email is verified, the AuthPage will automatically navigate to HomePage
       }
     } on FirebaseAuthException catch (e) {
       displayMessage(e.code, context);
@@ -72,8 +73,48 @@ class _LoginPageState extends State<LoginPage> {
     await FirebaseAuth.instance.signInWithCredential(credential);
 
     Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => HomePage()),
-          );
+      MaterialPageRoute(builder: (context) => HomePage()),
+    );
+  }
+
+  String generateNonce([int length = 32]) {
+    final charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
+  }
+
+  String sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
+  void signInWithApple() async {
+    final rawNonce = generateNonce();
+    final nonce = sha256ofString(rawNonce);
+
+    try {
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        nonce: nonce,
+      );
+
+      final oauthCredential = OAuthProvider("apple.com").credential(
+        idToken: appleCredential.identityToken,
+        rawNonce: rawNonce,
+      );
+
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(oauthCredential);
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => HomePage()),
+      );
+    } catch (e) {
+      displayMessage("Error signing in with Apple: ${e.toString()}", context);
+    }
   }
 
   // Forgot Password Method
@@ -95,6 +136,47 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Widget _buildSocialSignInButton({
+    required VoidCallback onTap,
+    required String imagePath,
+    required String text,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 150,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              spreadRadius: 1,
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(imagePath, height: 24, width: 24),
+            const SizedBox(width: 10),
+            Text(
+              text,
+              style: TextStyle(
+                color: Colors.grey[700],
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -106,7 +188,7 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 20),
                   Image.asset('lib/images/logo_black.png', height: 180),
                   const SizedBox(height: 40),
                   const Text(
@@ -163,38 +245,20 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(height: 30),
-                  GestureDetector(
-                    onTap: signInWithGoogle,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            spreadRadius: 1,
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildSocialSignInButton(
+                        onTap: signInWithGoogle,
+                        imagePath: 'lib/images/google.png',
+                        text: 'Google',
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const SquareTile(imagePath: 'lib/images/google.png'),
-                          const SizedBox(width: 10),
-                          Text(
-                            'Sign in with Google',
-                            style: TextStyle(
-                              color: Colors.grey[700],
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                      _buildSocialSignInButton(
+                        onTap: signInWithApple,
+                        imagePath: 'lib/images/apple.png',
+                        text: 'Apple',
                       ),
-                    ),
+                    ],
                   ),
                   const SizedBox(height: 30),
                   Row(
