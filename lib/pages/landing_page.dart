@@ -46,16 +46,19 @@ class _LandingPageState extends State<LandingPage> {
                     'Track Workouts',
                     'Log and monitor your exercises, sets, reps, and weights with precision',
                     Icons.fitness_center,
+                    false
                   ),
                   _buildFeatureCard(
                     'AI-Powered Analysis',
                     'Get personalized insights and progress tracking',
                     Icons.analytics,
+                    false
                   ),
                   _buildFeatureCard(
                     'Create Custom Workouts',
                     'Let AI design routines tailored to your goals',
                     Icons.auto_awesome,
+                    false
                   ),
                 ],
               ),
@@ -105,29 +108,36 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
-  Widget _buildFeatureCard(String title, String description, IconData icon) {
+  Widget _buildFeatureCard(String title, String description, IconData icon, bool isSmallScreen) {
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      margin: EdgeInsets.symmetric(
+        horizontal: isSmallScreen ? 12 : 24, 
+        vertical: isSmallScreen ? 6 : 16
+      ),
       color: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isSmallScreen ? 15 : 20)),
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(isSmallScreen ? 12.0 : 24.0),
         child: Center(
           child: SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icon, size: 60, color: Colors.black),
-                SizedBox(height: 16),
+                Icon(icon, size: isSmallScreen ? 36 : 60, color: Colors.black),
+                SizedBox(height: isSmallScreen ? 8 : 16),
                 Text(
                   title,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 16 : 20, 
+                    fontWeight: FontWeight.bold, 
+                    color: Colors.black
+                  ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: isSmallScreen ? 4 : 8),
                 Text(
                   description,
-                  style: TextStyle(fontSize: 16, color: Colors.grey[800]),
+                  style: TextStyle(fontSize: isSmallScreen ? 12 : 16, color: Colors.grey[800]),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -146,7 +156,7 @@ class _LandingPageState extends State<LandingPage> {
         children: [
           _buildStat('50K+', 'Users'),
           _buildStat('700K+', 'Workouts Logged'),
-          _buildStat('95%+', 'Goal Achievement'),
+          _buildStat('95%+', 'Goals Achieved'),
         ],
       ),
     );

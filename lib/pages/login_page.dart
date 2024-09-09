@@ -140,14 +140,15 @@ class _LoginPageState extends State<LoginPage> {
     required VoidCallback onTap,
     required String imagePath,
     required String text,
+    required bool isSmallScreen,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 150,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        width: isSmallScreen ? 120 : 150,
+        padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 12 : 16, vertical: isSmallScreen ? 8 : 10),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 16),
           color: Colors.white,
           boxShadow: [
             BoxShadow(
@@ -161,16 +162,128 @@ class _LoginPageState extends State<LoginPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(imagePath, height: 24, width: 24),
-            const SizedBox(width: 10),
+            Image.asset(imagePath, height: isSmallScreen ? 20 : 24, width: isSmallScreen ? 20 : 24),
+            SizedBox(width: isSmallScreen ? 8 : 10),
             Text(
               text,
               style: TextStyle(
                 color: Colors.grey[700],
-                fontSize: 16,
+                fontSize: isSmallScreen ? 14 : 16,
                 fontWeight: FontWeight.bold,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, BoxConstraints constraints) {
+    bool isSmallScreen = constraints.maxHeight < 700; // Adjust this threshold as needed
+
+    return SingleChildScrollView(
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(height: isSmallScreen ? 10 : 20),
+            Image.asset('lib/images/logo_black.png', height: isSmallScreen ? 120 : 180),
+            SizedBox(height: isSmallScreen ? 20 : 40),
+            Text(
+              'Login to your account',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: isSmallScreen ? 20 : 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: isSmallScreen ? 20 : 30),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: MyTextField(
+                controller: emailController,
+                hintText: 'Email',
+                obscureText: false,
+                prefixIcon: Icon(Icons.email, color: Colors.grey[600]),
+              ),
+            ),
+            SizedBox(height: isSmallScreen ? 12 : 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: MyTextField(
+                controller: passwordController,
+                hintText: 'Password',
+                obscureText: true,
+                prefixIcon: Icon(Icons.lock, color: Colors.grey[600]),
+              ),
+            ),
+            SizedBox(height: isSmallScreen ? 12 : 16),
+            GestureDetector(
+              onTap: forgotPassword,
+              child: Text('Forgot Password?',
+                  style: TextStyle(color: Colors.grey[600], fontSize: isSmallScreen ? 14 : 16)),
+            ),
+            SizedBox(height: isSmallScreen ? 20 : 30),
+            MyButton(
+              buttonText: "Sign In",
+              onTap: login,
+            ),
+            SizedBox(height: isSmallScreen ? 20 : 30),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 25.0),
+              child: Row(
+                children: [
+                  Expanded(child: Divider(color: Colors.grey[400])),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text('Or continue with', 
+                      style: TextStyle(color: Colors.grey[600], fontSize: isSmallScreen ? 14 : 16)),
+                  ),
+                  Expanded(child: Divider(color: Colors.grey[400])),
+                ],
+              ),
+            ),
+            SizedBox(height: isSmallScreen ? 20 : 30),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildSocialSignInButton(
+                  onTap: signInWithGoogle,
+                  imagePath: 'lib/images/google.png',
+                  text: 'Google',
+                  isSmallScreen: isSmallScreen,
+                ),
+                SizedBox(width: isSmallScreen ? 16 : 20),
+                _buildSocialSignInButton(
+                  onTap: signInWithApple,
+                  imagePath: 'lib/images/apple.png',
+                  text: 'Apple',
+                  isSmallScreen: isSmallScreen,
+                ),
+              ],
+            ),
+            SizedBox(height: isSmallScreen ? 20 : 30),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Not a member?',
+                  style: TextStyle(color: Colors.grey[700], fontSize: isSmallScreen ? 14 : 16),
+                ),
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: widget.onTap,
+                  child: Text(
+                    'Register now',
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontWeight: FontWeight.bold,
+                      fontSize: isSmallScreen ? 14 : 16,
+                    ),
+                  ),
+                ),
+              ],
+            )
           ],
         ),
       ),
@@ -182,118 +295,24 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       body: SafeArea(
-        child: Stack(children: [
-          SingleChildScrollView(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 20),
-                  Image.asset('lib/images/logo_black.png', height: 180),
-                  const SizedBox(height: 40),
-                  const Text(
-                    'Login to your account',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: MyTextField(
-                      controller: emailController,
-                      hintText: 'Email',
-                      obscureText: false,
-                      prefixIcon: Icon(Icons.email, color: Colors.grey[600]),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: MyTextField(
-                      controller: passwordController,
-                      hintText: 'Password',
-                      obscureText: true,
-                      prefixIcon: Icon(Icons.lock, color: Colors.grey[600]),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  GestureDetector(
-                    onTap: forgotPassword,
-                    child: Text('Forgot Password?',
-                        style: TextStyle(color: Colors.grey[600])),
-                  ),
-                  const SizedBox(height: 30),
-                  MyButton(
-                    buttonText: "Sign In",
-                    onTap: login,
-                  ),
-                  const SizedBox(height: 30),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                    child: Row(
-                      children: [
-                        Expanded(child: Divider(color: Colors.grey[400])),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text('Or continue with', style: TextStyle(color: Colors.grey[600])),
-                        ),
-                        Expanded(child: Divider(color: Colors.grey[400])),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildSocialSignInButton(
-                        onTap: signInWithGoogle,
-                        imagePath: 'lib/images/google.png',
-                        text: 'Google',
-                      ),
-                      _buildSocialSignInButton(
-                        onTap: signInWithApple,
-                        imagePath: 'lib/images/apple.png',
-                        text: 'Apple',
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Not a member?',
-                        style: TextStyle(color: Colors.grey[700]),
-                      ),
-                      const SizedBox(width: 4),
-                      GestureDetector(
-                        onTap: widget.onTap,
-                        child: const Text(
-                          'Register now',
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
-                ],
-              ),
+        child: Stack(
+          children: [
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return _buildContent(context, constraints);
+              },
             ),
-          ),
-          ValueListenableBuilder<bool>(
+            ValueListenableBuilder<bool>(
               valueListenable: isLoading,
               builder: (context, value, child) {
                 if (value) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 return const SizedBox.shrink();
-              })
-        ]),
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
