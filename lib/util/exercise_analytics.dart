@@ -279,7 +279,17 @@ class _ExerciseAnalyticsCardState extends State<ExerciseAnalyticsCard> {
     ).then((_) => setState(() {})); // Trigger rebuild after dialog closes
   }
 
-    @override
+  bool _hasValidData() {
+    if (exerciseData.isEmpty) return false;
+    
+    return !exerciseData.every((data) {
+      List<dynamic> repsList = data['reps'];
+      List<dynamic> weightsList = data['weights'];
+      return repsList.every((reps) => reps == 0) && weightsList.every((weight) => weight == 0);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.all(8.0),
@@ -296,35 +306,48 @@ class _ExerciseAnalyticsCardState extends State<ExerciseAnalyticsCard> {
                   "${widget.exercise}: ${widget.metric}",
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.adjust),
-                  onPressed: () {
-                    _showTargetInputDialog(context);
-                  },
-                ),
+                if (!isLoading && _hasValidData())
+                  IconButton(
+                    icon: const Icon(Icons.adjust),
+                    onPressed: () {
+                      _showTargetInputDialog(context);
+                    },
+                  ),
               ],
             ),
             isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : exerciseData.isEmpty
-                    ? const Center(child: Text('No data available for selected exercise'))
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: 300,
-                            child: LineChart(_generateChartData()),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Target: ${widget.metric == "1RM" || widget.metric == "Volume" ? targetValue.toInt() : targetValue.toStringAsFixed(1)} ${widget.metric == "Reps" || widget.metric == "Sets" ? "" : "pounds"}',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
+                : _buildChartOrMessage(),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildChartOrMessage() {
+    if (exerciseData.isEmpty) {
+      return const Center(child: Text('No data available for selected exercise'));
+    } else if (exerciseData.every((data) {
+      List<dynamic> repsList = data['reps'];
+      List<dynamic> weightsList = data['weights'];
+      return repsList.every((reps) => reps == 0) && weightsList.every((weight) => weight == 0);
+    })) {
+      return const Center(child: Text('Please enter valid data to view analytics'));
+    } else {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: 300,
+            child: LineChart(_generateChartData()),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Target: ${widget.metric == "1RM" || widget.metric == "Volume" ? targetValue.toInt() : targetValue.toStringAsFixed(1)} ${widget.metric == "Reps" || widget.metric == "Sets" ? "" : "pounds"}',
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ],
+      );
+    }
   }
 }
