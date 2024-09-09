@@ -126,40 +126,40 @@ class _AiPageState extends State<AiPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        bool isSmallScreen = MediaQuery.of(context).size.height < 700;
         return Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Create Workout',
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text('Create Workout',
+                    style: TextStyle(fontSize: isSmallScreen ? 16 : 18, fontWeight: FontWeight.bold)),
                 const Divider(),
                 ListTile(
-                  title: const Text('Single Workout'),
-                  subtitle: const Text('Generate a one-time workout routine'),
+                  title: Text('Single Workout', style: TextStyle(fontSize: isSmallScreen ? 14 : 16)),
+                  subtitle: Text('Generate a one-time workout routine', style: TextStyle(fontSize: isSmallScreen ? 12 : 14)),
                   onTap: () {
                     Navigator.of(context).pop();
                     _createSingleWorkout();
                   },
                 ),
                 ListTile(
-                  title: const Text('Workout Regimen'),
-                  subtitle: const Text('Create a weekly workout plan'),
+                  title: Text('Workout Regimen', style: TextStyle(fontSize: isSmallScreen ? 14 : 16)),
+                  subtitle: Text('Create a weekly workout plan', style: TextStyle(fontSize: isSmallScreen ? 12 : 14)),
                   onTap: () {
                     Navigator.of(context).pop();
                     _createWorkoutRegimen();
                   },
                 ),
-                const Padding(
-                  padding: EdgeInsets.all(8.0),
+                Padding(
+                  padding: EdgeInsets.all(isSmallScreen ? 6.0 : 8.0),
                   child: Text(
                     'Tip: Fitness experts recommend following a regimen for at least 4-6 weeks to see noticeable progress.',
-                    style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12),
+                    style: TextStyle(fontStyle: FontStyle.italic, fontSize: isSmallScreen ? 10 : 12),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -394,22 +394,22 @@ class _AiPageState extends State<AiPage> {
     setState(() => _isLoading = false);
   }
 
-  Widget _buildRecommendationWidget() {
+  Widget _buildRecommendationWidget(bool isSmallScreen) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: EdgeInsets.all(isSmallScreen ? 6.0 : 8.0),
       child: Card(
         color: Colors.white,
         shadowColor: Colors.black,
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: EdgeInsets.all(isSmallScreen ? 6.0 : 8.0),
           child: Row(
             children: [
-              const Icon(Icons.info_outline, color: Colors.black),
-              const SizedBox(width: 8.0),
+              Icon(Icons.info_outline, color: Colors.black, size: isSmallScreen ? 18 : 24),
+              SizedBox(width: isSmallScreen ? 6.0 : 8.0),
               Expanded(
                 child: Text(
                   _recommendation,
-                  style: const TextStyle(fontSize: 16, color: Colors.black),
+                  style: TextStyle(fontSize: isSmallScreen ? 14 : 16, color: Colors.black),
                 ),
               ),
             ],
@@ -419,16 +419,16 @@ class _AiPageState extends State<AiPage> {
     );
   }
 
-  Widget _buildHeader() {
-    return const Padding(
-      padding: EdgeInsets.all(20.0),
+  Widget _buildHeader(bool isSmallScreen) {
+    return Padding(
+      padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             'Coach',
             style: TextStyle(
-                fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+                fontSize: isSmallScreen ? 20 : 24, fontWeight: FontWeight.bold, color: Colors.black),
           ),
         ],
       ),
@@ -439,50 +439,69 @@ class _AiPageState extends State<AiPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[200],
-      body: Column(
-        children: [
-          _buildHeader(),
-          if (_recommendation.isNotEmpty) _buildRecommendationWidget(),
-          Expanded(
-            child: DashChat(
-              currentUser: _currentUser,
-              onSend: _handleUserMessage,
-              messages: _messages,
-            ),
-          ),
-          if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: CircularProgressIndicator(color: Colors.black),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: const Text('Create Workout', style: TextStyle(fontWeight: FontWeight.bold)),
-                  onPressed: _createWorkout,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.lightbulb_outline),
-                  label: const Text('Get Tip', style: TextStyle(fontWeight: FontWeight.bold)),
-                  onPressed: _getTip,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          bool isSmallScreen = constraints.maxHeight < 700;
+          return _buildContent(isSmallScreen);
+        },
       ),
+    );
+  }
+
+  Widget _buildContent(bool isSmallScreen) {
+    return Column(
+      children: [
+        _buildHeader(isSmallScreen),
+        if (_recommendation.isNotEmpty) _buildRecommendationWidget(isSmallScreen),
+        Expanded(
+          child: DashChat(
+            currentUser: _currentUser,
+            onSend: _handleUserMessage,
+            messages: _messages,
+          ),
+        ),
+        if (_isLoading)
+          Padding(
+            padding: EdgeInsets.all(isSmallScreen ? 6.0 : 8.0),
+            child: CircularProgressIndicator(color: Colors.black),
+          ),
+        Padding(
+          padding: EdgeInsets.all(isSmallScreen ? 6.0 : 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton.icon(
+                icon: Icon(Icons.add, size: isSmallScreen ? 18 : 24),
+                label: Text('Create Workout', 
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: isSmallScreen ? 12 : 14)),
+                onPressed: _createWorkout,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isSmallScreen ? 12 : 16,
+                    vertical: isSmallScreen ? 8 : 12
+                  ),
+                ),
+              ),
+              ElevatedButton.icon(
+                icon: Icon(Icons.lightbulb_outline, size: isSmallScreen ? 18 : 24),
+                label: Text('Get Tip', 
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: isSmallScreen ? 12 : 14)),
+                onPressed: _getTip,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isSmallScreen ? 12 : 16,
+                    vertical: isSmallScreen ? 8 : 12
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

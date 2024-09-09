@@ -65,43 +65,51 @@ class _AnalyzePageState extends State<AnalyzePage> {
     });
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(bool isSmallScreen) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: EdgeInsets.all(isSmallScreen ? 6.0 : 8.0),
       child: TextField(
         onChanged: updateSearchQuery,
         decoration: InputDecoration(
           labelText: 'Search exercises',
           prefixIcon: const Icon(Icons.search),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 10),
             borderSide: BorderSide.none,
           ),
           filled: true,
           fillColor: Colors.grey[200],
+          contentPadding: EdgeInsets.symmetric(
+            vertical: isSmallScreen ? 8 : 12,
+            horizontal: isSmallScreen ? 12 : 16,
+          ),
         ),
       ),
     );
   }
 
-  void _showExerciseSelectionDialog() {
+  void _showExerciseSelectionDialog(bool isSmallScreen) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Select an Exercise'),
+          title: Text(
+            'Select an Exercise',
+            style: TextStyle(fontSize: isSmallScreen ? 18 : 20),
+          ),
           content: SizedBox(
             width: double.maxFinite,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildSearchBar(),
+                _buildSearchBar(isSmallScreen),
                 Expanded(
                   child: filteredExercises.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Text(
                           'You don\'t have enough data to analyze yet. Try tracking some workouts!',
                           textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: isSmallScreen ? 14 : 16),
                         ),
                       )
                     : ListView.builder(
@@ -109,7 +117,10 @@ class _AnalyzePageState extends State<AnalyzePage> {
                         itemCount: filteredExercises.length,
                         itemBuilder: (context, index) {
                           return ListTile(
-                            title: Text(filteredExercises[index]),
+                            title: Text(
+                              filteredExercises[index],
+                              style: TextStyle(fontSize: isSmallScreen ? 14 : 16),
+                            ),
                             onTap: () {
                               Navigator.pop(context);
                               Navigator.push(
@@ -137,31 +148,52 @@ class _AnalyzePageState extends State<AnalyzePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[200],
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          bool isSmallScreen = constraints.maxHeight < 700;
+          return _buildContent(isSmallScreen);
+        },
+      ),
+    );
+  }
+
+  Widget _buildContent(bool isSmallScreen) {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               "Analyze",
-              style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: isSmallScreen ? 22 : 25,
+                fontWeight: FontWeight.bold
+              ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: isSmallScreen ? 12 : 16),
             const WorkoutsPerWeekCard(),
-            const SizedBox(height: 16),
+            SizedBox(height: isSmallScreen ? 12 : 16),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.grey[300],
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSmallScreen ? 20 : 24,
+                  vertical: isSmallScreen ? 12 : 16
+                ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(isSmallScreen ? 10 : 12),
                 ),
               ),
-              onPressed: isLoading ? null : _showExerciseSelectionDialog,
-              child: const Text(
+              onPressed: isLoading ? null : () => _showExerciseSelectionDialog(isSmallScreen),
+              child: Text(
                 'Perform an AI-powered analysis on an exercise',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 16 : 18,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold
+                ),
               ),
             ),
             if (isLoading)

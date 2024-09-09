@@ -182,7 +182,7 @@ class _HomePageState extends State<HomePage> {
     return '${weights[bestIndex]} x ${reps[bestIndex]}';
   }
 
-  Widget _buildSessionHistory() {
+  Widget _buildSessionHistory(bool isSmallScreen) {
     return StreamBuilder<QuerySnapshot>(
       stream: sessionFirestore?.getSessionStream(),
       builder: (context, snapshot) {
@@ -191,13 +191,16 @@ class _HomePageState extends State<HomePage> {
           child: ExpansionTile(
             initiallyExpanded: true,
             title: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 8.0 : 16.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     "Session History",
-                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: isSmallScreen ? 18 : 25,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -227,38 +230,55 @@ class _HomePageState extends State<HomePage> {
 
                       return Card(
                         color: Colors.grey[300],
-                        margin: const EdgeInsets.symmetric(
-                            vertical: 8, horizontal: 16),
+                        margin: EdgeInsets.symmetric(
+                          vertical: isSmallScreen ? 6 : 8,
+                          horizontal: isSmallScreen ? 12 : 16,
+                        ),
                         child: ExpansionTile(
-                          title: Text(session.title,
-                              style: const TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold)),
-                          subtitle: Text(DateFormat.yMMMd()
-                              .format(session.date)
-                              .toString()),
+                          title: Text(
+                            session.title,
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 16 : 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: Text(
+                            DateFormat.yMMMd()
+                                .format(session.date)
+                                .toString(),
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 12 : 14,
+                            ),
+                          ),
                           children: [
                             ...session.exercises.map((exercise) => ListTile(
                                   title: Text(
-                                      "${exercise['title'] ?? 'Unknown Exercise'}: ${(exercise['reps'] as List?)?.length ?? 0} sets",
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold)),
+                                    "${exercise['title'] ?? 'Unknown Exercise'}: ${(exercise['reps'] as List?)?.length ?? 0} sets",
+                                    style: TextStyle(
+                                      fontSize: isSmallScreen ? 14 : 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                   subtitle: Text(
                                     'Best set: ${_getBestSet(exercise['weights'] as List? ?? [], exercise['reps'] as List? ?? [])}',
+                                    style: TextStyle(
+                                      fontSize: isSmallScreen ? 12 : 14,
+                                    ),
                                   ),
                                 )),
                             ButtonBar(
                               alignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 IconButton(
-                                  icon: const Icon(Icons.edit),
+                                  icon: Icon(Icons.edit, size: isSmallScreen ? 18 : 24),
                                   onPressed: () => _editSession(session, docID),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.recycling),
+                                  icon: Icon(Icons.recycling, size: isSmallScreen ? 18 : 24),
                                   onPressed: () => _makeTemplate(session),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete),
+                                  icon: Icon(Icons.delete, size: isSmallScreen ? 18 : 24),
                                   onPressed: () => deleteSession(docID),
                                 ),
                               ],
@@ -272,18 +292,18 @@ class _HomePageState extends State<HomePage> {
               else
                 Column(
                   children: [
-                    const SizedBox(height: 25),
-                    const Padding(
-                      padding: EdgeInsets.all(16.0),
+                    SizedBox(height: isSmallScreen ? 12 : 25),
+                    Padding(
+                      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
                       child: Center(
                         child: Text(
                           "No session data available.\nStart a workout and begin tracking your progress!",
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 16),
+                          style: TextStyle(fontSize: isSmallScreen ? 12 : 16),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 25),
+                    SizedBox(height: isSmallScreen ? 12 : 25),
                   ],
                 ),
             ],
@@ -356,7 +376,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildTemplatesSection() {
+  Widget _buildTemplatesSection(bool isSmallScreen) {
     return StreamBuilder<QuerySnapshot>(
       stream: sessionFirestore?.getTemplateStream(),
       builder: (context, snapshot) {
@@ -365,19 +385,27 @@ class _HomePageState extends State<HomePage> {
           child: ExpansionTile(
             initiallyExpanded: true,
             title: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 8.0 : 16.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     "Templates",
-                    style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: isSmallScreen ? 18 : 25,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   ElevatedButton.icon(
                     onPressed: _addNewTemplate,
-                    icon: const Icon(Icons.add),
-                    label: const Text("Add Template",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    icon: Icon(Icons.add, size: isSmallScreen ? 18 : 24),
+                    label: Text(
+                      "Add Template",
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 14 : 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
                       foregroundColor: Colors.white,
@@ -391,19 +419,19 @@ class _HomePageState extends State<HomePage> {
                 const Center(child: CircularProgressIndicator())
               else if (!snapshot.hasData || snapshot.data!.docs.isEmpty)
                 Column(
-                  children: const [
-                    SizedBox(height: 25),
+                  children: [
+                    SizedBox(height: isSmallScreen ? 12 : 25),
                     Padding(
-                      padding: EdgeInsets.all(16.0),
+                      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
                       child: Center(
                         child: Text(
                           "No templates available.\nCreate one to supercharge your workout routine!",
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 16),
+                          style: TextStyle(fontSize: isSmallScreen ? 12 : 16),
                         ),
                       ),
                     ),
-                    SizedBox(height: 25),
+                    SizedBox(height: isSmallScreen ? 12 : 25),
                   ],
                 )
               else
@@ -419,34 +447,52 @@ class _HomePageState extends State<HomePage> {
 
                     return Card(
                       color: Colors.grey[300],
-                      margin: const EdgeInsets.symmetric(
-                          vertical: 8, horizontal: 16),
+                      margin: EdgeInsets.symmetric(
+                        vertical: isSmallScreen ? 6 : 8,
+                        horizontal: isSmallScreen ? 12 : 16,
+                      ),
                       child: ExpansionTile(
-                        title: Text(template.title,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 18)),
-                        subtitle:
-                            Text("Exercises: ${template.exercises.length}"),
+                        title: Text(
+                          template.title,
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 16 : 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: Text(
+                          "Exercises: ${template.exercises.length}",
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 12 : 14,
+                          ),
+                        ),
                         children: [
                           ...template.exercises.map((exercise) => ListTile(
                                 title: Text(
-                                    exercise['title'] ?? 'Unknown Exercise'),
+                                  exercise['title'] ?? 'Unknown Exercise',
+                                  style: TextStyle(
+                                    fontSize: isSmallScreen ? 14 : 16,
+                                  ),
+                                ),
                                 subtitle: Text(
-                                    "Sets: ${(exercise['reps'] as List?)?.length ?? 0}"),
+                                  "Sets: ${(exercise['reps'] as List?)?.length ?? 0}",
+                                  style: TextStyle(
+                                    fontSize: isSmallScreen ? 12 : 14,
+                                  ),
+                                ),
                               )),
                           ButtonBar(
                             alignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.edit),
+                                icon: Icon(Icons.edit, size: isSmallScreen ? 18 : 24),
                                 onPressed: () => _editTemplate(template, docID),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.play_arrow),
+                                icon: Icon(Icons.play_arrow, size: isSmallScreen ? 18 : 24),
                                 onPressed: () => _useTemplate(template, docID),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete),
+                                icon: Icon(Icons.delete, size: isSmallScreen ? 18 : 24),
                                 onPressed: () => _deleteTemplate(docID),
                               ),
                             ],
@@ -571,20 +617,23 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildQuickStartGuide() {
+  Widget _buildQuickStartGuide(bool isSmallScreen) {
     if (!showQuickStartGuide!) return const SizedBox.shrink();
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 "Quick Start Guide",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 18 : 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               IconButton(
                 icon: const Icon(Icons.close),
@@ -592,76 +641,90 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: isSmallScreen ? 12 : 16),
           Text(
             "Welcome to Palestra!",
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: isSmallScreen ? 20 : 24,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          SizedBox(height: 16),
+          SizedBox(height: isSmallScreen ? 12 : 16),
           Text(
-              "Your personal fitness journey starts here. Track your workouts, analyze your progress, and create personalized workout plans.",
-              style: TextStyle(fontSize: 16)),
-          SizedBox(height: 16),
+            "Your personal fitness journey starts here. Track your workouts, analyze your progress, and create personalized workout plans.",
+            style: TextStyle(fontSize: isSmallScreen ? 14 : 16),
+          ),
+          SizedBox(height: isSmallScreen ? 12 : 16),
           _buildGuideStep(
             icon: Icons.add_circle_outline,
             title: "Create a Session",
             description: "Start by creating your first workout session.",
+            isSmallScreen: isSmallScreen,
           ),
           _buildGuideStep(
             icon: Icons.fitness_center,
             title: "Log Your Workouts",
-            description:
-                "Record your exercises, sets, reps, and weights for each session.",
+            description: "Record your exercises, sets, reps, and weights for each session.",
+            isSmallScreen: isSmallScreen,
           ),
           _buildGuideStep(
             icon: Icons.save_alt,
             title: "Create Templates",
-            description:
-                "Save your favorite workouts as templates for quick access.",
+            description: "Save your favorite workouts as templates for quick access.",
+            isSmallScreen: isSmallScreen,
           ),
           _buildGuideStep(
             icon: Icons.create,
             title: "Add Custom Exercises",
-            description:
-                "Can't find an exercise? Add your own to the database.",
+            description: "Can't find an exercise? Add your own to the database.",
+            isSmallScreen: isSmallScreen,
           ),
           _buildGuideStep(
             icon: Icons.smart_toy,
             title: "AI Workout Generation",
-            description:
-                "Use AI to generate personalized workouts or regimens.",
+            description: "Use AI to generate personalized workouts or regimens.",
+            isSmallScreen: isSmallScreen,
           ),
           _buildGuideStep(
             icon: Icons.analytics,
             title: "Analyze Your Progress",
-            description:
-                "Utilize AI and graphs to visualize and understand your fitness journey.",
+            description: "Utilize AI and graphs to visualize and understand your fitness journey.",
+            isSmallScreen: isSmallScreen,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildGuideStep(
-      {required IconData icon,
-      required String title,
-      required String description}) {
+  Widget _buildGuideStep({
+    required IconData icon,
+    required String title,
+    required String description,
+    required bool isSmallScreen,
+  }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.only(bottom: isSmallScreen ? 12 : 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 24),
-          const SizedBox(width: 16),
+          Icon(icon, size: isSmallScreen ? 20 : 24),
+          SizedBox(width: isSmallScreen ? 12 : 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text(description, style: const TextStyle(fontSize: 14)),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 14 : 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: isSmallScreen ? 2 : 4),
+                Text(
+                  description,
+                  style: TextStyle(fontSize: isSmallScreen ? 12 : 14),
+                ),
               ],
             ),
           ),
@@ -709,53 +772,11 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.grey[200],
       body: Obx(() {
         if (controller.index.value == 1) {
-          return SingleChildScrollView(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Container(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      currentUser?.displayName != null
-                          ? "Let's work, ${currentUser!.displayName}."
-                          : "Start Workout",
-                      style: const TextStyle(
-                        fontSize: 35,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton(
-                    onPressed: createNewSession,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 20),
-                      textStyle: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.start, color: Colors.white),
-                        Text(' Start Workout Session'),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _buildQuickStartGuide(),
-                _buildTemplatesSection(),
-                _buildSessionHistory(),
-              ],
-            ),
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              bool isSmallScreen = constraints.maxHeight < 700;
+              return _buildHomeContent(isSmallScreen);
+            },
           );
         } else {
           return controller.pages[controller.index.value];
@@ -785,6 +806,59 @@ class _HomePageState extends State<HomePage> {
             },
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildHomeContent(bool isSmallScreen) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
+            child: Container(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                currentUser?.displayName != null
+                    ? "Let's work, ${currentUser!.displayName}."
+                    : "Start Workout",
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 28 : 35,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(isSmallScreen ? 6.0 : 8.0),
+            child: ElevatedButton(
+              onPressed: createNewSession,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSmallScreen ? 16 : 20, 
+                  vertical: isSmallScreen ? 16 : 20
+                ),
+                textStyle: TextStyle(
+                  fontSize: isSmallScreen ? 16 : 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.start, color: Colors.white),
+                  Text(' Start Workout Session'),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(height: isSmallScreen ? 12 : 16),
+          _buildQuickStartGuide(isSmallScreen),
+          _buildTemplatesSection(isSmallScreen),
+          _buildSessionHistory(isSmallScreen),
+        ],
       ),
     );
   }
